@@ -1,0 +1,4 @@
+Addons are a method for third-party developers to package and distribute their
+work to others.  The addon system can be used to distribute everything from
+a single type implementation to a full system for viewing and editing a file
+format comprised of templates, types, scripts, and specialized editing tools.

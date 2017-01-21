@@ -1,0 +1,3 @@
+The template system is the core feature of spade.  Templates are a flexible way
+to define the structure of a target file using a C-like language to define
+regions in the target file.

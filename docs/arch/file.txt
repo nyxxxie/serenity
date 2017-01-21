@@ -1,0 +1,1 @@
+File provides a simple wrapper over the existing file api that stores metadata and other things.

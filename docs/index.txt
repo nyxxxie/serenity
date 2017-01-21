@@ -1,20 +1,29 @@
-.. spade documentation master file, created by
-   sphinx-quickstart on Sat Jan 21 15:53:47 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to spade's documentation!
 =================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+Spade is an experimental rewrite of mycroft in python.  Below you will find
+various documentation that will help you to understand how spade works and
+how to use it.
 
+Architecture
+============
 
+This explains the basic architecture of spade.
 
-Indices and tables
-==================
+* **Templates:**
+:doc:`Overview <arch/templates>` |
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+* **Typesystem:**
+:doc:`Overview <arch/typesystem>` |
+
+* **File:**
+:doc:`Overview <arch/file>` |
+
+* **Project:**
+:doc:`Overview <arch/project>` |
+
+* **Analysis:**
+:doc:`Overview <arch/analysis>` |
+
+* **Addon:**
+:doc:`Overview <arch/addon>` |
