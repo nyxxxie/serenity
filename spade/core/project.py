@@ -7,12 +7,11 @@ class Project:
         pass
 
     def __create_db(self, dbfile):
-        pass
+        return sqlite3.connect(self.dbfile)
 
     def __init__(self, dbfile):
-        self.name   = name;
         self.dbfile = dbfile;
-        self.db = sqlite3.connect(self.dbfile)
+        self.db = self.__create_db(dbfile)
 
     def _add_file(self, f):
         """
