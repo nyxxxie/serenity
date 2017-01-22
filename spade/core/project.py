@@ -3,6 +3,12 @@ import sqlite3
 class Project:
     """Represents an open session for spade."""
 
+    def __create_db_default_tables(self, dbfile):
+        pass
+
+    def __create_db(self, dbfile):
+        pass
+
     def __init__(self, name="(default)", dbfile=":memory:"):
         self.name   = name;
         self.ismem  = (dbfile == ":memory:")
