@@ -2,3 +2,6 @@ Addons are a method for third-party developers to package and distribute their
 work to others.  The addon system can be used to distribute everything from
 a single type implementation to a full system for viewing and editing a file
 format comprised of templates, types, scripts, and specialized editing tools.
+Addons should be loaded from ~/.spade/ directory and must be loaded in order
+defined by their name presedence (that means that one has to sort files and
+directories found in the directory and load them in that order).
