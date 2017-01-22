@@ -1,0 +1,10 @@
+Settings files reside at /usr/share/spade/rc.yml and ~/.spade/rc.yml .  Upon
+program start, ~/.spade/rc.yml shall be checked.  If it is not present, program
+then should read one in /usr/.  Rationale for /usr/share/spade/rc.yml: having a
+default file simplifies the library as we don't have to write default values in
+the program code itself.  Rationale for ~/.spade/rc.yml: having a shorter path
+is better when user interaction is intended, contrary to paths such as
+~/.local/share/spade/rc.yml .  Rationale for YAML: YAML is an object notation
+language that is easy for users to write contrary to JSON, and, *cough* XML,
+though it allows complex constructs such as lists and dictionaries contrary to
+formats such as unix conf (aka INI files).
