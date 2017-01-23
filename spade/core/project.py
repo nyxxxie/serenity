@@ -4,7 +4,25 @@ class Project:
     """Represents an open session for spade."""
 
     def __create_db_default_tables(self, dbfile):
-        pass
+        c = self.db.cursor()
+        c.execute("""
+        CREATE TABLE files
+        (path TEXT,
+         hash BINARY(32),  # sha256 hash of file contents on first add
+         head BINARY(32),  # head of change the file is set to, default NULL
+         PRIMARY KEY(hash));
+        """)
+        c.execute("""
+        CREATE TABLE changes
+        (file   BINARY(32),  # sha256 of file we apply changes to
+         this   BINARY(32),  # sha256 of this change
+         parent BINARY(32),  # sha256 of parent (previous) change
+         at     BIGINT,      # position (relative to parent) change is at
+         type   BIT,         # '0' = insertion, '1' = erasure
+         change BLOB,        # bytes that were inserted or erased
+         com    TEXT,        # user's comment, annotation or whatever else
+         FOREIGN KEY (file) REFERENCES files (hash));
+        """)
 
     def __create_db(self, dbfile):
         return sqlite3.connect(self.dbfile)
@@ -12,6 +30,7 @@ class Project:
     def __init__(self, dbfile):
         self.dbfile = dbfile;
         self.db = self.__create_db(dbfile)
+        # must send query PRAGMA foreign_keys = ON;
 
     def _add_file(self, f):
         """
