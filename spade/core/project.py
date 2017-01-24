@@ -6,9 +6,8 @@ class Project:
     def __create_db_default_tables(self):
         self.db.execute("""
         CREATE TABLE project_info
-        (key TEXT,
-         val TEXT,
-         UNIQUE (key));
+        (key TEXT UNIQUE,
+         val TEXT);
         """)
         self.db.execute("""
         CREATE TABLE files
