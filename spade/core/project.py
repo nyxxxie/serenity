@@ -3,33 +3,48 @@ import sqlite3
 class Project:
     """Represents an open session for spade."""
 
-    def __create_db_default_tables(self, dbfile):
-        c = self.db.cursor()
-        c.execute("""
-        CREATE TABLE files
-        (path TEXT,
-         hash BINARY(32),  # sha256 hash of file contents on first add
-         head BINARY(32),  # head of change the file is set to, default NULL
-         PRIMARY KEY(hash));
+    def __create_db_default_tables(self):
+        self.db.execute("""
+        CREATE TABLE project_info
+        (key TEXT,
+         val TEXT,
+         UNIQUE (key));
         """)
-        c.execute("""
+        self.db.execute("""
+        CREATE TABLE files
+        (id          INT AUTO_INCREMENT,
+         path        TEXT,
+         hash        BINARY(32),  -- sha256 hash of file contents on last change
+         head_change BINARY(32),  -- head change the file is at.  default NULL
+         UNIQUE (path),
+         PRIMARY KEY (id));
+        """)
+        self.db.execute("""
         CREATE TABLE changes
-        (file   BINARY(32),  # sha256 of file we apply changes to
-         this   BINARY(32),  # sha256 of this change
-         parent BINARY(32),  # sha256 of parent (previous) change
-         at     BIGINT,      # position (relative to parent) change is at
-         type   BIT,         # '0' = insertion, '1' = erasure
-         change BLOB,        # bytes that were inserted or erased
-         com    TEXT,        # user's comment, annotation or whatever else
-         FOREIGN KEY (file) REFERENCES files (hash));
+        (id          INT,         -- id of the file we apply changes to
+         hash        BINARY(32),  -- sha256 of this change
+         parent      BINARY(32),  -- sha256 of parent (previous) change
+         file_pos    BIGINT,
+         change_type CHARACTER,   -- '+' = insert, '-' = erase, '!' = replace
+         change      BLOB,        -- bytes that were inserted or erased
+         PRIMARY KEY (id, hash),
+         FOREIGN KEY (id) REFERENCES files (id));
+        """)
+        self.db.execute("""
+        CREATE TABLE changes_comments
+        (id      INT,
+         hash    BINARY(32),
+         comment TEXT,
+         UNIQUE (id, hash),
+         FOREIGN KEY (id, hash) REFERENCES changes (id, hash));
         """)
 
-    def __create_db(self, dbfile):
+    def __create_db(self):
         return sqlite3.connect(self.dbfile)
 
     def __init__(self, dbfile):
-        self.dbfile = dbfile;
-        self.db = self.__create_db(dbfile)
+        self.dbfile = dbfile
+        self.db = self.__create_db()
         # must send query PRAGMA foreign_keys = ON;
 
     def _add_file(self, f):
@@ -68,13 +83,16 @@ class Project:
         """
         Returns a list of templates in the project.
         """
+        pass
 
     def set_template_for_file(self, f, template):
         """
         Associates a template with a file.
         """
+        pass
 
     def get_template_for_file(self, f, template):
         """
         Gets the associated template for a file.
         """
+        pass

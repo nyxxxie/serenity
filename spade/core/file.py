@@ -58,6 +58,10 @@ class _File:
         assert at > 0
         pass
 
+    def _replace(self, base: bytes, at: int, data: bytes) -> bytes:
+        assert at > 0
+        pass
+
     def _erase(self, base: bytes, at: int, length: int) -> bytes:
         assert at > 0
         pass
@@ -93,7 +97,7 @@ class FileView():
     def read(self, at: int, length: int) -> bytes:
         assert at > 0
         assert length > 1
-        if (at + length) >= self._len
+        if (at + length) >= self._len:
             raise FileException("Read beyond file end")
         # TODO: Should apply changes to what it reads
         # TODO: Should use cache to avoid poor performance on big diff
