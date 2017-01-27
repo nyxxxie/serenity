@@ -59,6 +59,9 @@ class Project:
         """
         pass
 
+    def db(self):
+        return db
+
     def files(self):
         """
         Returns a list of files in the project.  Does not print files that have been added but closed.
