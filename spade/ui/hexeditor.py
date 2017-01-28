@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QWidget, QAbstractScrollArea
 from PyQt5.QtCore import Qt, QRect
 from PyQt5.QtGui import QPainter, QFont, QFontMetrics, QColor, QPen
 
-ELEMENT_GAP=6
+COLUMN_GAP=6
 TEXT_OFFSET=4
 ROW_OFFSET=0
 BYTE_GAP=8
@@ -17,7 +17,7 @@ def get_file_size(f):
     f.seek(old_pos, os.SEEK_SET)
     return size
 
-class HexEditorView:
+class HexEditorColumn:
     def __init__(self, hexeditor):
         self.hexeditor = hexeditor
         self.width = 0
@@ -46,11 +46,16 @@ class HexEditorView:
     def file_size(self):
         return get_file_size(self.hexeditor.file)
 
-class AddressView(HexEditorView):
+class AddressColumn(HexEditorColumn):
     def __init__(self, hexeditor):
         super().__init__(hexeditor)
 
     def render(self, start, paint):
+        # If this isn't the first column rendered, space ourselves out from the
+        # previous column
+        if (start != 0):
+            start += COLUMN_GAP
+
         # Calc width of the address bar
         n = self.file_size()
         byte_num = int(log(n, 0xff)) + 1 if n != 0 else 1
@@ -145,7 +150,7 @@ class HexEditor(QAbstractScrollArea):
 
         # Columns in the hex editor that will be displayed by default
         self.widgets = [
-            AddressView(self)
+            AddressColumn(self)
         ]
 
         self.verticalScrollBar().setValue(0);
