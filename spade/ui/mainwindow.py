@@ -1,4 +1,4 @@
-from .editorwidget import SpadeEditorWidget
+from .editorwidget import EditorWidget
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDesktopWidget, QMainWindow, QDockWidget, QTextEdit
 
@@ -12,7 +12,7 @@ class SpadeMainWindow(QMainWindow):
         self.setWindowTitle("Spade")
 
     def _create_central_widget(self):
-        self.central_widget = SpadeEditorWidget()
+        self.central_widget = EditorWidget()
         self.setCentralWidget(self.central_widget)
 
     def _create_projectview(self):
