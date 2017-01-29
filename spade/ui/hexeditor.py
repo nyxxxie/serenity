@@ -7,7 +7,7 @@ from PyQt5.QtGui import QPainter, QFont, QFontMetrics, QColor, QPen
 COLUMN_GAP=6
 TEXT_OFFSET=4
 ROW_OFFSET=0
-BYTE_GAP=8
+BYTE_GAP=4
 BYTES_PER_ROW=16
 
 def get_file_size(f):
@@ -21,6 +21,9 @@ class HexEditorColumn:
     def __init__(self, hexeditor):
         self.hexeditor = hexeditor
         self.width = 0
+
+    def cursor(self):
+        return self.hexeditor.cursor
 
     def rows(self):
         return self.hexeditor.rows_total
@@ -71,10 +74,83 @@ class AddressColumn(HexEditorColumn):
         # Draw addresses
         start += TEXT_OFFSET
         for row in range(1, self.rows_visible()):
-            addr = row * BYTES_PER_ROW
+            addr = (row + self.row_start() - 1) * BYTES_PER_ROW
             paint.drawText(start,
-                (row*self.font_height()*2) + ROW_OFFSET,
+                row*(ROW_OFFSET + self.font_height()*2),
                 ("%x" % addr).zfill(byte_num) + "h")
+
+        # Let caller know how much space we took up while drawing
+        return start + width
+
+class HexColumn(HexEditorColumn):
+    def __init__(self, hexeditor):
+        super().__init__(hexeditor)
+
+    def render(self, start, paint):
+        # If this isn't the first column rendered, space ourselves out from the
+        # previous column
+        if (start != 0):
+            start += COLUMN_GAP
+
+        # Calc width of the address bar
+        width = BYTES_PER_ROW * (2*self.font_width())
+        width += (BYTES_PER_ROW-1) * BYTE_GAP
+        width += (2 * TEXT_OFFSET)
+
+        # Draw bar
+        paint.fillRect(
+            QRect(start, 0, width, self.viewport().height()),
+            QColor(0, 255, 0))
+
+        # Draw hex
+        start += TEXT_OFFSET
+        old_pos = self.file().tell()
+        self.file().seek(self.row_start() * BYTES_PER_ROW, os.SEEK_SET)
+
+        for row in range(1, self.rows_visible()):
+            data = self.file().read(BYTES_PER_ROW)
+            for i, byte in enumerate(data):
+                paint.drawText(start+i*(BYTE_GAP+self.font_width()*2),
+                    row*(ROW_OFFSET + self.font_height()*2),
+                    "%02x " % byte)
+
+        self.file().seek(old_pos, os.SEEK_SET)
+
+        # Let caller know how much space we took up while drawing
+        return start + width
+
+class AsciiColumn(HexEditorColumn):
+    def __init__(self, hexeditor):
+        super().__init__(hexeditor)
+
+    def render(self, start, paint):
+        # If this isn't the first column rendered, space ourselves out from the
+        # previous column
+        if (start != 0):
+            start += COLUMN_GAP
+
+        # Calc width of the address bar
+        width = BYTES_PER_ROW * self.font_width()
+        width += (2 * TEXT_OFFSET)
+
+        # Draw bar
+        paint.fillRect(
+            QRect(start, 0, width, self.viewport().height()),
+            QColor(0, 0, 255))
+
+        # Draw hex
+        start += TEXT_OFFSET
+        old_pos = self.file().tell()
+        self.file().seek(self.row_start() * BYTES_PER_ROW, os.SEEK_SET)
+
+        for row in range(1, self.rows_visible()):
+            data = self.file().read(BYTES_PER_ROW)
+            for i, byte in enumerate(data):
+                paint.drawText(start + (i*self.font_width()),
+                    row*(ROW_OFFSET + self.font_height()*2),
+                    "%c" % byte)
+
+        self.file().seek(old_pos, os.SEEK_SET)
 
         # Let caller know how much space we took up while drawing
         return start + width
@@ -107,7 +183,7 @@ class HexEditor(QAbstractScrollArea):
         # Calculate font width and height
         fm = QFontMetrics(font)
         self.font_width = fm.width(" ")
-        self.font_height = fm.height()/2
+        self.font_height = int(fm.height()/2) - 1
 
         # Recalc vars since font has changed
         self._adjust()
@@ -150,11 +226,13 @@ class HexEditor(QAbstractScrollArea):
 
         # Columns in the hex editor that will be displayed by default
         self.widgets = [
-            AddressColumn(self)
+            AddressColumn(self),
+            HexColumn(self),
+            AsciiColumn(self)
         ]
 
         self.verticalScrollBar().setValue(0);
         self.horizontalScrollBar().setValue(0);
 
         self.setFont(QFont("Monospace", 7, QFont.Light))
-        self.setFile(open("testfile", "rb"))
+        #self.setFile(open("testfile", "rb"))
