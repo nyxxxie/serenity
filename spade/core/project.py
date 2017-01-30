@@ -11,16 +11,15 @@ class Project:
         """)
         self.db.execute("""
         CREATE TABLE files
-        (id          INT AUTO_INCREMENT,
-         path        TEXT,
+        (id          INTEGER PRIMARY KEY AUTOINCREMENT,
+         path        TEXT UNIQUE,
          hash        BINARY(32),  -- sha256 hash of file contents on last change
-         head_change BINARY(32),  -- head change the file is at.  default NULL
-         UNIQUE (path),
-         PRIMARY KEY (id));
+         base_change BINARY(32),  -- change the file is at.  default 0
+         head_change BINARY(32)); -- last change done to the file.  default 0
         """)
         self.db.execute("""
         CREATE TABLE changes
-        (id          INT,         -- id of the file we apply changes to
+        (id          INTEGER,     -- id of the file we apply changes to
          hash        BINARY(32),  -- sha256 of this change
          parent      BINARY(32),  -- sha256 of parent (previous) change
          file_pos    BIGINT,
@@ -31,7 +30,7 @@ class Project:
         """)
         self.db.execute("""
         CREATE TABLE changes_comments
-        (id      INT,
+        (id      INTEGER,
          hash    BINARY(32),
          comment TEXT,
          UNIQUE (id, hash),
