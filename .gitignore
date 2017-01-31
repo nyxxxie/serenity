@@ -2,3 +2,5 @@ __pycache__
 env
 venv
 docs/_build
+*.egg-info
+*__pycache__*
