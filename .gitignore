@@ -2,4 +2,5 @@ venv
 docs/_build
 spade.egg-info
 .cache
+.eggs/
 *__pycache__
