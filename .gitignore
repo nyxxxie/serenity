@@ -1,6 +1,5 @@
-__pycache__
-env
 venv
 docs/_build
-*.egg-info
-*__pycache__*
+spade.egg-info
+.cache
+*__pycache__
