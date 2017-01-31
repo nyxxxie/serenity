@@ -47,8 +47,13 @@ class Project:
         );
         """)
 
+        return True
+
     def __create_db(self, dbfile):
         db = sqlite3.connect(dbfile)
+        if !self.__initialize_db(db):
+            return None
+
         return db;
 
     def __init__(self, dbfile):
