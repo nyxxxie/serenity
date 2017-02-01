@@ -17,7 +17,7 @@ process of setting up spade using a virtual environment looks something like
 this:
 
 ### Linux
-```
+```shell
 cd <your forked git repo> # Enter project directory
 virtualenv venv           # Create virtual environment
 . venv/bin/activate       # Activate the virtual environment
@@ -37,13 +37,40 @@ the development version of spade.
 ## Getting started
 The biggest challenge to getting started is getting to know the codebase well
 enough to feel comfortable contributing.  Here are some low-complexity tasks
-that you may consider engaging in to help become familiar with:
-  * blah1
-  * blah2
+that you may consider engaging in to help become familiar with spade:
+  * create unit test
+  * investigate/fix low complexity bugs
+  * implement approved feature request
 
-Mycroft also supports sphinx documentation generation, which you may find
-useful.  To build documentation, simply execute `python setup.py build_sphinx`.
+Spade also supports sphinx documentation generation, which you may find useful.
+To build documentation, simply execute `python setup.py build_sphinx`.
 
+## Unit tests
+include them with your code when applicable.  if you want to contribute a unit
+tests to test for a potential bug or to strengthen the existing test suite,
+feel free
+
+## Branching
+
+## Code style
+
+## Pull requests
+If you want to contribute code, it is advised you create a [wip] pull request
+so that others know that you are currently working on a specific feature.
+Create a feak
+
+## Bug patching
+
+## Feature requests
+
+## Bug reporting
+Please note that the issue tracker is *not* tech support.  Please only report
+faults or issues in spade itself.  When you report, please use [this template][3]
+to give us information necessary to diagnose and fix your bug.  If you have
+found a potential bug related to security, please email `nyxxxxie at gmail`
+directly.  Nyxxie's public key can be found on [keybase][4].
 
 [1]: https://github.com/nyxxxie/spade
-[2]: http://docs.python-guide.org/en/latest/dev/virtualenvs/
+[2]: https://docs.python-guide.org/en/latest/dev/virtualenvs/
+[3]: BUG_TEMPLATE.txt
+[4]: https://keybase.io/nyxxie/
