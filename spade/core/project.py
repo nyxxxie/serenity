@@ -3,60 +3,79 @@ import sqlite3
 class Project:
     """Represents an open session for spade."""
 
-    def __create_db_default_tables(self):
-        self.db.execute("""
-        CREATE TABLE project_info
-        (key TEXT UNIQUE,
-         val TEXT);
-        """)
-        self.db.execute("""
-        CREATE TABLE files
-        (id          INTEGER PRIMARY KEY AUTOINCREMENT,
-         path        TEXT UNIQUE,
-         hash        BINARY(32),  -- sha256 hash of file contents on last change
-         base_change BINARY(32),  -- change the file is at.  default 0
-         head_change BINARY(32)); -- last change done to the file.  default 0
-        """)
-        self.db.execute("""
-        CREATE TABLE changes
-        (id          INTEGER,     -- id of the file we apply changes to
-         hash        BINARY(32),  -- sha256 of this change
-         parent      BINARY(32),  -- sha256 of parent (previous) change
-         file_pos    BIGINT,
-         change_type CHARACTER,   -- '+' = insert, '-' = erase, '!' = replace
-         change      BLOB,        -- bytes that were inserted or erased
-         PRIMARY KEY (id, hash),
-         FOREIGN KEY (id) REFERENCES files (id));
-        """)
-        self.db.execute("""
-        CREATE TABLE changes_comments
-        (id      INTEGER,
-         hash    BINARY(32),
-         comment TEXT,
-         UNIQUE (id, hash),
-         FOREIGN KEY (id, hash) REFERENCES changes (id, hash));
+    def __initialize_db(self, db):
+        """
+        Creates default tables for a newly created spade project
+        """
+
+        # Get cursor for db
+        c = db.cursor()
+
+        # Execute initialization query
+        rc = db.execute("""
+        PRAGMA foreign_keys = ON; -- need this to use foreign keys
+
+        CREATE TABLE project_info(
+            key TEXT UNIQUE,
+            val TEXT
+        );
+
+        CREATE TABLE files(
+            id   INT AUTO_INCREMENT,
+            path TEXT,           -- relative or absolute path to this file
+            hash BLOB,           -- sha256 hash of file contents on last change
+            head_change BLOB,    -- head change the file is at.  default NULL
+            UNIQUE (path),
+            PRIMARY KEY (id)
+        );
+
+        CREATE TABLE changes(
+            file_id INTEGER,     -- file_id of the file we apply changes to
+            hash        BLOB,    -- sha256 of this change
+            parent      BLOB,    -- sha256 of parent (previous) change
+            file_pos,   INTEGER,
+            change_type INTEGER, -- '+' = insert, '-' = erase, '!' = replace
+            change      BLOB,    -- bytes that were inserted or erased
+            FOREIGN KEY (file_id) REFERENCES files (id)
+            UNIQUE (hash)
+        );
+
+        CREATE TABLE changes_comments(
+            hash    BLOB,        -- sha256 of the change this comment refers to
+            comment TEXT,
+            FOREIGN KEY (hash) REFERENCES changes (hash)
+        );
         """)
 
-    def __create_db(self):
-        return sqlite3.connect(self.dbfile)
+        return True
+
+    def __create_db(self, dbfile):
+        db = sqlite3.connect(dbfile)
+        if !self.__initialize_db(db):
+            return None
+
+        return db;
 
     def __init__(self, dbfile):
-        self.dbfile = dbfile
-        self.db = self.__create_db()
+        self.__dbfile = dbfile
+        self.__db = self.__create_db(dbfile)
         # must send query PRAGMA foreign_keys = ON;
 
-    def _add_file(self, f):
+    def add_file(self, path):
         """
         Adds a file to the project.  Fails on adding duplicate files.  Can take
         both the path to a valid file and a currently open file object.
         """
         pass
 
-    def _remove_file(self, f):
+    def remove_file(self, f):
         """
         Removes a file from the project.
         """
         pass
+
+    def db(self):
+        return self.__db
 
     def files(self):
         """
