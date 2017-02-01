@@ -10,5 +10,11 @@ setup(
     author_email='nyxxxxie@gmail.com',
     license='GNU GPL v3',
     packages=['spade'],
+    install_requires=[
+        'PyQt5',
+        'Sphinx'
+    ],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
     zip_safe=False
 )
