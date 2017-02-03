@@ -71,7 +71,9 @@ Make all your changes in a new branch.
 
 ## Feature requests
 If you have an idea for a feature you would like to see in spade or would like
-to implement, submit an issue.
+to implement, submit an issue.  Approved feature requests will be given the
+cooresponding label.  If no one is assigned and there are no [wip] pull
+requests for that issue, feel free to implement it.
 
 ## Bug reporting
 Please note that the issue tracker is *not* tech support.  Please only report
