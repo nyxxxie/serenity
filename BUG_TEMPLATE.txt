@@ -1,0 +1,16 @@
+# Platform
+Please list your OS, CPU architecture, spade version, etc here.  This helps
+us determine how to replicate your bug as well as lets us identify specific
+platforms that cause consistant problems.
+
+# Descripion of Issue
+Remember that those reviewing your bug do not have all the information you
+have about your bug.  Please be as detailed as possible in describing your bug
+if you actually want it to be fixed.  Don't leave out details because you think
+they are obvious or assume we know what you're talking about.  Be prepared to 
+provide additional information if requested.
+
+# Steps to Replicate
+If applicable, please give detailed and exact steps to reproduce your bug.  If
+we cannot see for ourselves what you're experiencing, it becomes much more
+difficult to fix your bug.  This may be submitted in list format.1
