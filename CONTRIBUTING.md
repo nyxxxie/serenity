@@ -46,9 +46,14 @@ Spade also supports sphinx documentation generation, which you may find useful.
 To build documentation, simply execute `python setup.py build_sphinx`.
 
 ## Unit tests
-include them with your code when applicable.  if you want to contribute a unit
-tests to test for a potential bug or to strengthen the existing test suite,
-feel free
+Unit tests are a useful way to test code you write.  Not only does it save you
+the work of having to write a test client to test your features, but it also
+allows future developers to test your features when they may have made changes.
+Spade requires that unit tests be submitted with code patches when applicable,
+both because of the aforementioned reasons and because it makes it easier to
+review pull requests.  If you are looking for a low-complexity way to start
+working on spade, creating new unit tests to increase test coverage is an
+excellent way to do so!
 
 ## Branching
 Spade uses the [gitflow][3] development model.  Branches other than develop and
@@ -68,6 +73,12 @@ so that others know that you are currently working on a specific feature.
 Make all your changes in a new branch.
 
 ## Bug patching
+A good way to contribute and get familiar with spade's internals is to
+investigate and patch bugs.  Contribute bug patches just as you would
+contribute any other code, but please also include a unit test to test for the
+bug in question.  When a bug is submitted to the issue tracker, it will be
+rated and assigned if applicable.  Before you start your patch, ensure there
+are no [wip] pull requests opne for that bug and that no one is assigned to it.
 
 ## Feature requests
 If you have an idea for a feature you would like to see in spade or would like
@@ -84,7 +95,7 @@ directly.  Nyxxie's public key can be found on [keybase][6].
 
 [1]: https://github.com/nyxxxie/spade
 [2]: https://docs.python-guide.org/en/latest/dev/virtualenvs/
-[3]: https://www.python.org/dev/peps/pep-0008/#code-lay-out
 [3]: http://nvie.com/posts/a-successful-git-branching-model/
-[4]: BUG_TEMPLATE.txt
-[5]: https://keybase.io/nyxxie/
+[4]: https://www.python.org/dev/peps/pep-0008/#code-lay-out
+[5]: BUG_TEMPLATE.txt
+[6]: https://keybase.io/nyxxie/
