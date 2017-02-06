@@ -12,6 +12,8 @@ setup(
     packages=['spade'],
     install_requires=[
         'PyQt5',
+        'pyyaml',
+        'sqlalchemy',
         'Sphinx'
     ],
     setup_requires=['pytest-runner'],
