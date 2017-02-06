@@ -1,10 +1,10 @@
 import datetime
-from sqlalchemy import create_engine, Metadata, Table, Column, Binary, Integer, String, ForeignKey
+from sqlalchemy import create_engine, MetaData, Table, Column, Binary, Integer, String, ForeignKey
 
 class Project:
     """Represents an open session for spade."""
 
-    def __create_db(self, engine):
+    def __init_db(self, engine):
         """
         Creates default tables for a newly created spade project
         """
@@ -26,17 +26,17 @@ class Project:
 
         # Define changes table
         self.table_changes = Table("changes", metadata,
-            Column("file_id", None, ForeignKey("files.id"),     # id of file we apply changes to
+            Column("file_id", None, ForeignKey("files.id")),    # id of file we apply changes to
             Column("hash", Binary),                             # sha256 of this change
             Column("parent", Binary),                           # sha256 of previous change
             Column("file_pos", Integer),                        # position in file where change occured
             Column("change_type", Integer),                     # change type (TODO: make this enum).  '+' = insert, '-' = erase, '!' = replace
-            Column("change" Binary)                             # bytes that were inserted or erased
+            Column("change", Binary)                            # bytes that were inserted or erased
         )
 
         # Define change_comments table
-        self.table_changes = Table("change_comments", metadata,
-            Column("change", None, ForeignKey("changes.hash"),  # hash of the change this comment refers to
+        self.table_change_comments = Table("change_comments", metadata,
+            Column("change", None, ForeignKey("changes.hash")), # hash of the change this comment refers to
             Column("text", String)                              # comment text
         )
 
@@ -48,7 +48,7 @@ class Project:
     def __add_info(self, key, value, nomodify=False):
         # TODO: handle nomodify var
         ins = self.table_pinfo.insert()
-        conn = self__db_engine.connect()
+        conn = self.__db_engine.connect()
         conn.execute(ins, key=key, value=value) # TODO: might cause problems?
 
     def __init__(self, dbfile):
