@@ -2,7 +2,7 @@ import datetime
 
 from sqlalchemy import create_engine, MetaData, Table, Column, Binary, Integer, String, ForeignKey
 
-SCHEMA_VERSION = (0, 0)
+SCHEMA_VERSION = "0.0"
 
 
 class ProjectException(Exception):
@@ -14,12 +14,12 @@ class Project:
     """Represents an open session for spade."""
 
     def __init__(self, dbfile):
-        self.__dbfile = dbfile
-        self.__db_engine = create_engine("sqlite:///"+dbfile)
-        self.__init_db(self.__db_engine)
-        self.__add_info("schema_version", "1")
-        self.__add_info("creation_datetime", datetime.datetime.now(), True)
-        self.__add_info("update_datetime", datetime.datetime.now())
+        self._dbfile = dbfile
+        self._db_engine = create_engine("sqlite:///" + dbfile)
+        self._init_db(self._db_engine)
+        self._add_info("schema_version", SCHEMA_VERSION)
+        self._add_info("creation_datetime", datetime.datetime.now(), True)
+        self._add_info("update_datetime", datetime.datetime.now())
 
     def add_file(self, path):
         """
@@ -35,7 +35,7 @@ class Project:
         pass
 
     def db_engine(self):
-        return self.__db_engine
+        return self._db_engine
 
     def files(self):
         """
@@ -78,7 +78,7 @@ class Project:
     def _add_info(self, key, value, nomodify=False):
         # TODO(nyxxxie): handle nomodify var
         ins = self.table_pinfo.insert()
-        conn = self.__db_engine.connect()
+        conn = self._db_engine.connect()
         conn.execute(ins, key=key, value=value) # TODO: might cause problems?
 
     def _init_db(self, engine):
