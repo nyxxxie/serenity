@@ -2,7 +2,7 @@ import datetime
 
 from sqlalchemy import create_engine, MetaData, Table, Column, Binary, Integer, String, ForeignKey
 
-SCHEMA_VERSION = "0.0a"
+SCHEMA_VERSION = (0, 0)
 
 
 class ProjectException(Exception):
@@ -20,9 +20,6 @@ class Project:
         self.__add_info("schema_version", "1")
         self.__add_info("creation_datetime", datetime.datetime.now(), True)
         self.__add_info("update_datetime", datetime.datetime.now())
-
-    def db(self):
-        return self._db
 
     def add_file(self, path):
         """
@@ -78,18 +75,16 @@ class Project:
         """
         pass
 
-    def __add_info(self, key, value, nomodify=False):
+    def _add_info(self, key, value, nomodify=False):
         # TODO(nyxxxie): handle nomodify var
         ins = self.table_pinfo.insert()
         conn = self.__db_engine.connect()
         conn.execute(ins, key=key, value=value) # TODO: might cause problems?
 
-    def __init_db(self, engine):
+    def _init_db(self, engine):
         """
         Creates default tables for a newly created spade project
         """
-        file_hash_len = 256/8
-        change_hash_len = 256/8
         metadata = MetaData()
         # Define project_info table
         self.table_pinfo = Table("project_info", metadata,
@@ -116,26 +111,11 @@ class Project:
             Column("parent", Binary),
             # position in file where change occured
             Column("file_pos", Integer),
-            # NOTE(fst3a): Already solved this
             # change type.  '+' = insert, '-' = erase, '!' = replace
             Column("change_type", Integer),
             # bytes that were inserted or erased
             Column("change", Binary)
         )
-        # FIXME(fst3a): This is plain wrong, one project can have multiple files
-        # and two or more files can have exactly same change hashes that would
-        # collide in current scheme.  Therefore, this table is still undecided
-        # and should not be created in Project db yet.  NOTE: the ForeignKey
-        # should be made compound out of "files.id" and "changes.hash".
-        #
-        # # Define change_comments table
-        # self.table_change_comments = Table("change_comments", metadata,
-        #     # hash of the change this comment refers to
-        #     Column("change", None, ForeignKey("changes.hash")),
-        #     # comment text
-        #     Column("text", String)
-        # )
-        #
         # Add all tables to the database
         metadata.create_all(engine)
         return True
