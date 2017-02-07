@@ -18,8 +18,9 @@ class Project:
         self._db_engine = create_engine("sqlite:///" + dbfile)
         self._init_db(self._db_engine)
         self._add_info("schema_version", SCHEMA_VERSION)
-        self._add_info("creation_datetime", datetime.datetime.now(), True)
-        self._add_info("update_datetime", datetime.datetime.now())
+        date = datetime.datetime.now()
+        self.__add_info("creation_datetime", date, True)
+        self.__add_info("update_datetime", date)
 
     def add_file(self, path):
         """
