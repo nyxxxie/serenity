@@ -25,7 +25,12 @@ pip install -e .          # Install all dependencies and add spade components to
 ```
 
 ### Mac
-*TODO: write this*
+```shell
+cd <your forked git repo> # Enter project directory
+virtualenv venv           # Create virtual environment
+. venv/bin/activate       # Activate the virtual environment
+pip install -e .          # Install all dependencies and add spade components to path
+```
 
 ### Windows
 *TODO: write this*
