@@ -15,11 +15,13 @@ class Project:
 
     def __init__(self, dbfile):
         self._dbfile = dbfile
+        # TODO: This should get converted to absolute path before getting passed
         self._db_engine = create_engine("sqlite:///" + dbfile)
         self._init_db(self._db_engine)
         self._add_info("schema_version", SCHEMA_VERSION)
-        self._add_info("creation_datetime", datetime.datetime.now(), True)
-        self._add_info("update_datetime", datetime.datetime.now())
+        date = datetime.datetime.now()
+        self._add_info("creation_datetime", date, True)
+        self._add_info("update_datetime", date)
 
     def add_file(self, path):
         """
