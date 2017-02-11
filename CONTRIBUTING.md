@@ -72,9 +72,9 @@ Code must adhere to [PEP8][4] with the following additions:
     ignored if it would result in ugly code.  For example, if you add a comment
     to a line that increases that line's length to 100, that is acceptable.
   * Class methods must be declared in the following order:
-      1.) Special class methods (__init__, __str__, etc)
-      2.) Public class methods
-      3.) Private class methods (prefixed with \_)
+      1. Special class methods (__init__, __str__, etc)
+      2. Public class methods
+      3. Private class methods (prefixed with _)
   * Refrain from using double underscore prefixes for methods and variables
 
 ## Pull requests
