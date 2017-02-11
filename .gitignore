@@ -5,3 +5,5 @@ spade.egg-info
 .eggs/
 *__pycache__
 tests/testdb.sdb
+spade/template/parser.out
+spade/template/parsetab.py

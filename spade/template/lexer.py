@@ -4,7 +4,7 @@ import ply.lex as lex
 tokens = [
    'NUMBER',
    'CHAR',
-   'LABEL',
+   'NAME',
    'STRING',
    'COMMENT',
    'BCOMMENT',
@@ -39,7 +39,7 @@ def t_CHAR(t):
     t.value = int(t.value)
     return t
 
-def t_LABEL(t):
+def t_NAME(t):
     r'[a-zA-Z][a-zA-Z0-9_\.-]*'
     if t.value in keywords:
         t.type = keywords[t.value]
@@ -71,7 +71,7 @@ def t_newline(t):
 # A string containing ignored characters (spaces and tabs)
 t_ignore  = ' \t'
 
-def get_coords(t):
+def get_location(t):
     last_cr = t.lexer.lexdata.rfind("\n", 0, t.lexpos)
     if last_cr < 0:
         last_cr = 0
@@ -80,6 +80,8 @@ def get_coords(t):
 
 # Error handling rule
 def t_error(t):
-    line, col = get_coords(t)
+    line, col = get_location(t)
     print("Illegal character '%s' at [line:%i, col:%i]" % (t.value[0], line, col))
     t.lexer.skip(1) # TODO: break parsing here
+
+lexer = lex.lex()
