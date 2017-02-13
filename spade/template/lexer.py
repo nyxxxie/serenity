@@ -94,4 +94,5 @@ def t_error(t):
     print("Illegal character '%s' at [line:%i, col:%i]" % (t.value[0], line, col))
     t.lexer.skip(1) # TODO: break parsing here
 
-lexer = lex.lex()
+def create_lexer():
+    return lex.lex()

@@ -2,17 +2,20 @@ class Struct():
     """ Contains an ordered series of data of varied types. """
     def __init__(self, name, field_list=[]):
         self.name = name
-        self.field_list = field_list
+        self.fields = field_list
 
     def __repr__(self):
         ret = "struct %s {\n" % (self.name)
-        for field in self.field_list:
+        for field in self.fields:
             ret += ("\t" + str(field) + "\n")
         ret += "};"
         return ret
 
     def __str__(self):
         return self.__repr__()
+
+    def add_field(self, field):
+        self.fields.append(field)
 
 class Field():
     """ An entry in a struct """

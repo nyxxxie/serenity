@@ -7,3 +7,4 @@ spade.egg-info
 tests/testdb.sdb
 spade/template/parser.out
 spade/template/parsetab.py
+*log.txt
