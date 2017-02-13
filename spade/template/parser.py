@@ -1,31 +1,6 @@
-from lexer import tokens, lexer
+from lexer import tokens, lexer, get_location
+from ast import Struct, Field, Array
 import ply.yacc as yacc
-
-class Struct():
-    def __init__(self, name, field_list=[]):
-        self.name = name
-        self.field_list = field_list
-
-    def __repr__(self):
-        ret = "struct %s {\n" % (self.name)
-        for field in self.field_list:
-            ret += ("\t" + str(field) + "\n")
-        ret += "};"
-        return ret
-
-    def __str__(self):
-        return self.__repr__()
-
-class Field():
-    def __init__(self, t, n):
-        self.t = t
-        self.n = n
-
-    def __repr__(self):
-        return "%s %s" % (self.t, self.n)
-
-    def __str__(self):
-        return self.__repr__()
 
 def p_struct(p):
     """ struct : STRUCT NAME LBRACE struct_field_list RBRACE SEMICOLON
@@ -45,16 +20,35 @@ def p_struct_field_list(p):
         p[0] += p[1]       # Add the struct list to the overall list
         p[0].append(p[2])  # Add the new struct field to the list
 
-def p_struct_field(p):
-    """ struct_field : NAME NAME SEMICOLON
+def p_struct_field_1(p):
+    """ struct_field : TYPE NAME SEMICOLON
     """
     p[0] = Field(p[1], p[2])
+
+def p_struct_field_2(p):
+    """ struct_field : TYPE NAME LBRACKET NUMBER RBRACKET SEMICOLON
+    """
+    p[0] = Array(Field(p[1], p[2]), p[4])
+
+def p_struct_field_3(p):
+    """ struct_field : TYPE NAME LBRACKET NAME RBRACKET SEMICOLON
+    """
+    p[0] = Array(Field(p[1], p[2]), p[4])
+
+def p_error(p):
+    if p:
+        line, col = get_location(p)
+        print("Parsing error at line:%i, col:%i - Unexpected token \"%s\"" % (line, col, p.type))
+    else:
+        print("Syntax error at EOF")
 
 sample = """
 struct test {
     int field1;
     int field2;
     int blah;
+    int blah1[1337];
+    int blah2[test.field1];
 };
 """
 

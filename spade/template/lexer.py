@@ -5,6 +5,7 @@ tokens = [
    'NUMBER',
    'CHAR',
    'NAME',
+   'TYPE',
    'STRING',
    'COMMENT',
    'BCOMMENT',
@@ -39,10 +40,19 @@ def t_CHAR(t):
     t.value = int(t.value)
     return t
 
+def is_type(t):
+    """ Placeholder function until typesystem is implemented. """
+    if t == "int":
+        return True
+
+    return False
+
 def t_NAME(t):
     r'[a-zA-Z][a-zA-Z0-9_\.-]*'
     if t.value in keywords:
         t.type = keywords[t.value]
+    if is_type(t.value):
+        t.type = "TYPE"
     return t
 
 def t_COMMENT(t):
