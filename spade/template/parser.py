@@ -1,5 +1,5 @@
 from lexer import tokens, lexer, get_location
-from ast import Struct, Field, Array
+from ast import Struct, Field, Array, DynamicArray
 import ply.yacc as yacc
 
 def p_struct(p):
@@ -33,7 +33,7 @@ def p_struct_field_2(p):
 def p_struct_field_3(p):
     """ struct_field : TYPE NAME LBRACKET NAME RBRACKET SEMICOLON
     """
-    p[0] = Array(Field(p[1], p[2]), p[4])
+    p[0] = DynamicArray(Field(p[1], p[2]), p[4])
 
 def p_error(p):
     if p:
