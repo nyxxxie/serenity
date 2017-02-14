@@ -1,5 +1,4 @@
 import hashlib
-import mmap
 from threading import Lock
 
 from . import project
@@ -10,7 +9,7 @@ class FileException(Exception):
     pass
 
 
-class _File:
+class File:
     """
     Provides undo and redo tree history for file.  Think of it as of
     a quantum file that keeps all states of file at the same time. It
@@ -18,38 +17,16 @@ class _File:
     create a _FileView using _File.view() first.
     """
 
-    def __init__(self, project, id):
-        self._id = id
+    def __init__(self, project, id, fd):
         self._project = project
-        self._e = self._project.db_engine()
-        (path, self._base) = self._querypb()
-        try:
-            self._fd = open(path, "rb")
-        except OSError as e:
-            raise FileException(e.msg)
-
-    def view(self):
-        """
-        Returns newly created instance of _FileView.
-        """
-        return _FileView(self)
+        self._id = id
+        self._fd = fd
 
     def base(self) -> bytes:
         """
         Returns base change for this file.
         """
         return self._base
-
-    def _querypb(self) -> (str, bytes):
-        """
-        Returns (path, base_change) tuple of this file.
-        """
-        # c = self._db.cursor()
-        # c.execute("SELECT path, head_change FROM files WHERE id = ?;",
-        #           (self._id,))
-        # info = c.fetchone()
-        # assert info is not None, "Bad id"
-        # return tuple(info)
 
     def _changes(self, base: bytes, head: bytes) -> list:
         """

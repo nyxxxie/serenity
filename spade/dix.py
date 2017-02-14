@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+import core.project
+import core.file
 
 rows = [
     (None, 0, "hello, world!"),
@@ -18,6 +20,10 @@ rows = [
             (2, 20, "java"),
 ]
 
+proj = core.project.Project("test.db")
+proj.add_file("ld-2.24.so")
+so = proj.open_file(1)
+
 class Tree:
 
     def __init__(self, nodes, base=None, parent=None):
@@ -32,29 +38,32 @@ class Tree:
             self.parent = parent
             self.value = values[0]
 
-def depth_search(start, target):
-    # TODO: We can't have recursive anything!!
-    if not start.root and start.value == target:
-        return [start]
-    for (id, sub) in start.subs.items():
-        r = depth_search(sub, target)
-        if r is not None:
-            return [start] + r
-    return None
-
 def find_path(start, end):
-    # TODO: Same fucking thing
-    # Cancer!
-    r = depth_search(start, end)
-    if r is None:
-        return [start] + find_path(start.parent, end)
-    return r
+    (up_start, up_end) = ([], [])
+
+# def depth_search(start, target):
+#     # TODO: We can't have recursive anything!!
+#     if not start.root and start.value == target:
+#         return [start]
+#     for (id, sub) in start.subs.items():
+#         r = depth_search(sub, target)
+#         if r is not None:
+#             return [start] + r
+#     return None
+
+# def find_path(start, end):
+#     # TODO: Same fucking thing
+#     # Cancer!
+#     r = depth_search(start, end)
+#     if r is None:
+#         return [start] + find_path(start.parent, end)
+#     return r
 
 
-root = Tree(rows)
+# root = Tree(rows)
 
 # for x in depth_search(root, "lonix"):
 #     print("root" if x.root else x.value)
 
-for x in find_path(root.subs[0].subs[2].subs[20], "p9"):
-    print("root" if x.root else x.value)
+# for x in find_path(root.subs[0].subs[2].subs[20], "p9"):
+#     print("root" if x.root else x.value)
