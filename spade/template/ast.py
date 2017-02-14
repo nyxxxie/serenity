@@ -1,3 +1,24 @@
+class AstException(Exception): pass
+
+# TODO: name this stuff Definitions?  For example, StructDef, FieldDef, etc.
+
+class Ast():
+    def __init__(self):
+        self.structs = []
+
+    def __repr__(self):
+        ret = ""
+        for struct in self.structs:
+            ret += str(struct)
+        return ret
+
+    def __str__(self):
+        return self.__repr__()
+
+    def add_struct(self, struct):
+        self.structs.append(struct)
+        return struct
+
 class Struct():
     """ Contains an ordered series of data of varied types. """
     def __init__(self, name, field_list=[]):
@@ -8,7 +29,7 @@ class Struct():
         ret = "struct %s {\n" % (self.name)
         for field in self.fields:
             ret += ("\t" + str(field) + "\n")
-        ret += "};"
+        ret += "}"
         return ret
 
     def __str__(self):

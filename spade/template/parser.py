@@ -1,6 +1,7 @@
 import logging
+from template import Template
 from lexer import create_lexer, tokens, get_location
-from ast import Struct, Field, Array, DynamicArray
+from ast import Ast, Struct, Field, Array, DynamicArray
 import ply.yacc as yacc
 
 logging.basicConfig(
@@ -8,6 +9,8 @@ logging.basicConfig(
     filename = "log.txt",
     filemode = "w",
     format = "%(filename)10s:%(lineno)4d:%(message)s")
+
+class TemplateParserException(Exception): pass
 
 class TemplateParser():
     def __init__(self):
@@ -24,19 +27,17 @@ class TemplateParser():
             debuglog=log)
 
         # Initialize other vars
-        self.structs = []
+        self.ast = Ast()
 
     def __repr__(self):
-        print("Structs:")
-        for struct in structs:
-            print(struct)
+        return str(self.ast)
 
     def __str__(self):
         return self.__repr__()
 
     def parse_string(self, text):
         self.parser.parse(text, lexer=create_lexer())
-        return None # TODO: need to generate structured template based on ast
+        return Template(self.ast) # TODO: need to generate structured template based on ast
 
     def parse_file(self, f):
         pass
@@ -45,12 +46,8 @@ class TemplateParser():
         """ struct : STRUCT NAME LBRACE struct_field_list RBRACE SEMICOLON
         """
         struct = Struct(p[2], p[4])
-        self._add_struct(struct)
-        print(struct)
+        self.ast.add_struct(struct)
         #p[0] = struct
-
-    def _add_struct(self, struct):
-        self.structs.append(struct)
 
     def p_struct_field_list(self, p):
         """ struct_field_list : struct_field
@@ -85,20 +82,24 @@ class TemplateParser():
         else:
             print("Syntax error at EOF")
 
-sample = """
-struct test {
-    int field1;
-    int field2;
-    int blah;
-    int blah1[1337];
-    int blah2[test.field1];
-};
-"""
+def main():
+    sample = """
+    struct test {
+        int field1;
+        int field2;
+        int blah;
+        int blah1[1337];
+        int blah2[test.field1];
+    };
+    """
 
-parser = TemplateParser()
-template = parser.parse_string(sample))
-print("---------- AST ----------")
-print(parser)
-print("------- TEMPLATE --------")
-print(template)
-print("-------------------------")
+    parser = TemplateParser()
+    template = parser.parse_string(sample)
+    print("---------- AST ----------")
+    print(parser)
+    print("------- TEMPLATE --------")
+    print(template)
+    print("-------------------------")
+
+if __name__ == "__main__":
+    main()
