@@ -3,7 +3,6 @@ import ply.lex as lex
 # Token names
 tokens = [
    'NUMBER',
-   'CHAR',
    'NAME',
    'TYPE',
    'STRING',
@@ -51,8 +50,8 @@ def t_NAME(t):
     r'[a-zA-Z][a-zA-Z0-9_\.-]*'
     if t.value in keywords:
         t.type = keywords[t.value]
-    if is_type(t.value):
-        t.type = "TYPE"
+    #if is_type(t.value):
+    #    t.type = "TYPE"
     return t
 
 def t_COMMENT(t):

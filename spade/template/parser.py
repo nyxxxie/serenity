@@ -1,7 +1,7 @@
 import logging
 from template import Template
 from lexer import create_lexer, tokens, get_location
-from ast import Ast, Struct, Field, Array, DynamicArray
+from ast import StructDecl, FieldDecl, ArrayDecl, Ast
 import ply.yacc as yacc
 
 logging.basicConfig(
@@ -21,7 +21,7 @@ class TemplateParser():
         log = logging.getLogger()
         self.parser = yacc.yacc(
             module=self,
-            #start='struct',
+            start='ast',
             write_tables=False,
             debug=True,
             debuglog=log)
@@ -36,16 +36,44 @@ class TemplateParser():
         return self.__repr__()
 
     def parse_string(self, text):
-        self.parser.parse(text, lexer=create_lexer())
-        return Template(self.ast) # TODO: need to generate structured template based on ast
+        ast = self.parser.parse(text, lexer=create_lexer())
+        if ast is None:
+            return None
+
+        return None # TODO: apply ast to file
+        #return Template(ast)
 
     def parse_file(self, f):
+        with open(f, "r") as f:
+            return self.parse_string(f.read())
+
+        return None
+
+    # TODO: start work here when ast is done
+    def p_ast(self, p):
+        """ ast : declaration_list """
+        p[0] = p[1]
+
+    def p_declaration_list(self, p):
+        """ declaration_list : declaration
+                             | declaration_list declaration
+        """
+        p[0] = []
+        if len(p) == 2:        # First option (declaration)
+            p[0].append(p[1])  # Add the new declaration to the list
+        else:                  # Second option (declaration_list struct_field)
+            p[0] += p[1]       # Add the declaration to the overall list
+            p[0].append(p[2])  # Add the new declaration to the list
+
+    def p_declaration(self, p):
+        """ declaration : struct """
+        p[0] = p[1]
         pass
 
     def p_struct(self, p):
         """ struct : STRUCT NAME LBRACE struct_field_list RBRACE SEMICOLON
         """
-        struct = Struct(p[2], p[4])
+        struct = StructDecl(p[2], p[4])
         self.ast.add_struct(struct)
         #p[0] = struct
 
@@ -61,19 +89,19 @@ class TemplateParser():
             p[0].append(p[2])  # Add the new struct field to the list
 
     def p_struct_field_1(self, p):
-        """ struct_field : TYPE NAME SEMICOLON
-        """
-        p[0] = Field(p[1], p[2])
+        """ struct_field : NAME NAME SEMICOLON """
+        #""" struct_field : TYPE NAME SEMICOLON """
+        p[0] = FieldDecl(p[1], p[2])
 
     def p_struct_field_2(self, p):
-        """ struct_field : TYPE NAME LBRACKET NUMBER RBRACKET SEMICOLON
-        """
-        p[0] = Array(Field(p[1], p[2]), p[4])
+        """ struct_field : NAME NAME LBRACKET NUMBER RBRACKET SEMICOLON """
+        #""" struct_field : TYPE NAME LBRACKET NUMBER RBRACKET SEMICOLON """
+        p[0] = ArrayDecl(FieldDecl(p[1], p[2]), p[4])
 
     def p_struct_field_3(self, p):
-        """ struct_field : TYPE NAME LBRACKET NAME RBRACKET SEMICOLON
-        """
-        p[0] = DynamicArray(Field(p[1], p[2]), p[4])
+        """ struct_field : NAME NAME LBRACKET NAME RBRACKET SEMICOLON """
+        #""" struct_field : TYPE NAME LBRACKET NAME RBRACKET SEMICOLON """
+        p[0] = ArrayDecl(FieldDecl(p[1], p[2]), p[4])
 
     def p_error(self, p):
         if p:
@@ -83,18 +111,12 @@ class TemplateParser():
             print("Syntax error at EOF")
 
 def main():
-    sample = """
-    struct test {
-        int field1;
-        int field2;
-        int blah;
-        int blah1[1337];
-        int blah2[test.field1];
-    };
-    """
-
     parser = TemplateParser()
-    template = parser.parse_string(sample)
+    template = parser.parse_file("test_template.stf")
+    if template == None:
+        print("Failed to parse sample.")
+        return
+
     print("---------- AST ----------")
     print(parser)
     print("------- TEMPLATE --------")

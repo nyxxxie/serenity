@@ -1,0 +1,16 @@
+struct header_t {
+    char signature[4];
+    int field1;
+    int field2;
+    int blob_amt;
+};
+
+struct blob_t {
+    int size;
+    char data[size];
+};
+
+struct FILE {
+    header_t header;
+    blob_t blobs[header.blob_amt];
+};

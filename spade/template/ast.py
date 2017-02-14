@@ -1,25 +1,8 @@
 class AstException(Exception): pass
 
-# TODO: name this stuff Definitions?  For example, StructDef, FieldDef, etc.
+# TODO: Figure out how AST should be organized before continuing with parser and template.  Check parser.py for the todo on where to start when ast is done
 
-class Ast():
-    def __init__(self):
-        self.structs = []
-
-    def __repr__(self):
-        ret = ""
-        for struct in self.structs:
-            ret += str(struct)
-        return ret
-
-    def __str__(self):
-        return self.__repr__()
-
-    def add_struct(self, struct):
-        self.structs.append(struct)
-        return struct
-
-class Struct():
+class StructDecl():
     """ Contains an ordered series of data of varied types. """
     def __init__(self, name, field_list=[]):
         self.name = name
@@ -38,7 +21,7 @@ class Struct():
     def add_field(self, field):
         self.fields.append(field)
 
-class Field():
+class FieldDecl():
     """ An entry in a struct """
     def __init__(self, t, n):
         self.t = t
@@ -50,30 +33,12 @@ class Field():
     def __str__(self):
         return self.__repr__()
 
-class Array():
+class ArrayDecl():
     """ Represents an array of fields.
     Keyword arguments:
     field -- Field to array
-    size  -- Some number > 0 representing size of array.
-    """
-    def __init__(self, field, size):
-        assert size > 0
-        self.field = field
-        self.size = size
-
-    def __repr__(self):
-        return "%s[%s]" % (self.field, self.size)
-
-    def __str__(self):
-        return self.__repr__()
-
-class DynamicArray():
-    """ Represents an array of fields.
-    Keyword arguments:
-    field -- Field to array
-    size  -- Field in struct (either relative to this scope or global)
-             representing array size.  Field's value must be representable
-             as an integer.
+    size  -- Some number > 0 representing size of array, or the location of
+             some numeric field that contains this array's size.
     """
     def __init__(self, field, size):
         self.field = field
@@ -84,3 +49,20 @@ class DynamicArray():
 
     def __str__(self):
         return self.__repr__()
+
+class Ast():
+    def __init__(self):
+        self.structs = []
+
+    def __repr__(self):
+        ret = ""
+        for struct in self.structs:
+            ret += str(struct)
+        return ret
+
+    def __str__(self):
+        return self.__repr__()
+
+    def add_struct(self, struct):
+        self.structs.append(struct)
+        return struct
