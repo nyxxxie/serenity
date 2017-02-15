@@ -98,10 +98,10 @@ class TemplateParser():
         #""" struct_field : TYPE NAME LBRACKET NUMBER RBRACKET SEMICOLON """
         p[0] = ArrayDecl(FieldDecl(p[1], p[2]), p[4])
 
-    def p_struct_field_3(self, p):
-        """ struct_field : NAME NAME LBRACKET NAME RBRACKET SEMICOLON """
-        #""" struct_field : TYPE NAME LBRACKET NAME RBRACKET SEMICOLON """
-        p[0] = ArrayDecl(FieldDecl(p[1], p[2]), p[4])
+    #def p_struct_field_3(self, p):
+    #    """ struct_field : NAME NAME LBRACKET NAME RBRACKET SEMICOLON """
+    #    #""" struct_field : TYPE NAME LBRACKET NAME RBRACKET SEMICOLON """
+    #    p[0] = ArrayDecl(FieldDecl(p[1], p[2]), p[4])
 
     def p_error(self, p):
         if p:

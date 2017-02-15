@@ -7,10 +7,8 @@ struct header_t {
 
 struct blob_t {
     int size;
-    char data[size];
 };
 
 struct FILE {
     header_t header;
-    blob_t blobs[header.blob_amt];
 };
