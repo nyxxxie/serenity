@@ -12,7 +12,7 @@ class StructDecl():
         ret = "struct %s {\n" % (self.name)
         for field in self.fields:
             ret += ("\t" + str(field) + "\n")
-        ret += "}"
+        ret += "};\n"
         return ret
 
     def __str__(self):
@@ -23,12 +23,12 @@ class StructDecl():
 
 class FieldDecl():
     """ An entry in a struct """
-    def __init__(self, t, n):
-        self.t = t
-        self.n = n
+    def __init__(self, type, name):
+        self.type = type
+        self.name = name
 
     def __repr__(self):
-        return "%s %s" % (self.t, self.n)
+        return "%s %s;" % (self.type, self.name)
 
     def __str__(self):
         return self.__repr__()
@@ -45,19 +45,23 @@ class ArrayDecl():
         self.size = size
 
     def __repr__(self):
-        return "%s[%s]" % (self.field, self.size)
+        return "%s %s[%s];" % (self.field.type, self.field.name, self.size)
 
     def __str__(self):
         return self.__repr__()
 
+    def length():
+        """ Returns the length of the array. """
+        return self.size
+
 class Ast():
-    def __init__(self):
-        self.structs = []
+    def __init__(self, decl_list):
+        self.decl_list = decl_list
 
     def __repr__(self):
         ret = ""
-        for struct in self.structs:
-            ret += str(struct)
+        for decl in self.decl_list:
+            ret += str(decl)
         return ret
 
     def __str__(self):

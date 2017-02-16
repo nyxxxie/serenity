@@ -26,9 +26,6 @@ class TemplateParser():
             debug=True,
             debuglog=log)
 
-        # Initialize other vars
-        self.ast = Ast()
-
     def __repr__(self):
         return str(self.ast)
 
@@ -36,11 +33,7 @@ class TemplateParser():
         return self.__repr__()
 
     def parse_string(self, text):
-        ast = self.parser.parse(text, lexer=create_lexer())
-        if ast is None:
-            return None
-
-        return None # TODO: apply ast to file
+        return self.parser.parse(text, lexer=create_lexer())
         #return Template(ast)
 
     def parse_file(self, f):
@@ -52,7 +45,7 @@ class TemplateParser():
     # TODO: start work here when ast is done
     def p_ast(self, p):
         """ ast : declaration_list """
-        p[0] = p[1]
+        p[0] = Ast(p[1])
 
     def p_declaration_list(self, p):
         """ declaration_list : declaration
@@ -68,14 +61,11 @@ class TemplateParser():
     def p_declaration(self, p):
         """ declaration : struct """
         p[0] = p[1]
-        pass
 
     def p_struct(self, p):
         """ struct : STRUCT NAME LBRACE struct_field_list RBRACE SEMICOLON
         """
-        struct = StructDecl(p[2], p[4])
-        self.ast.add_struct(struct)
-        #p[0] = struct
+        p[0] = StructDecl(p[2], p[4])
 
     def p_struct_field_list(self, p):
         """ struct_field_list : struct_field
@@ -98,10 +88,10 @@ class TemplateParser():
         #""" struct_field : TYPE NAME LBRACKET NUMBER RBRACKET SEMICOLON """
         p[0] = ArrayDecl(FieldDecl(p[1], p[2]), p[4])
 
-    def p_struct_field_3(self, p):
-        """ struct_field : NAME NAME LBRACKET NAME RBRACKET SEMICOLON """
-        #""" struct_field : TYPE NAME LBRACKET NAME RBRACKET SEMICOLON """
-        p[0] = ArrayDecl(FieldDecl(p[1], p[2]), p[4])
+    #def p_struct_field_3(self, p):
+    #    """ struct_field : NAME NAME LBRACKET NAME RBRACKET SEMICOLON """
+    #    #""" struct_field : TYPE NAME LBRACKET NAME RBRACKET SEMICOLON """
+    #    p[0] = ArrayDecl(FieldDecl(p[1], p[2]), p[4])
 
     def p_error(self, p):
         if p:
@@ -112,13 +102,11 @@ class TemplateParser():
 
 def main():
     parser = TemplateParser()
-    template = parser.parse_file("test_template.stf")
-    if template == None:
-        print("Failed to parse sample.")
-        return
+    ast = parser.parse_file("test_template.stf")
+    template = None
 
     print("---------- AST ----------")
-    print(parser)
+    print(ast)
     print("------- TEMPLATE --------")
     print(template)
     print("-------------------------")

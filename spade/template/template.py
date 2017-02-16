@@ -30,29 +30,29 @@ class TemplateException(Exception): pass
 #        """
 #        pass
 #
-#class Struct():
-#    def __init__(self, template, ast_def, parent=None):
-#        pass
-#
-#    def name():
-#        """ Returns the name of this struct. """
-#        pass
-#
-#    def offset():
-#        """ Returns the offset into a file this struct starts at.
-#        """
-#        pass
-#
-#    def size():
-#        """ Returns the size of this struct in bytes.
-#        """
-#        pass
-#
-#    def location():
-#        """ Returns the location in the template tree of this struct.
-#            For example: "FILE.header.signature".
-#        """
-#        pass
+class Struct():
+    def __init__(self, template, ast_def, parent=None):
+        pass
+
+    def name():
+        """ Returns the name of this struct. """
+        pass
+
+    def offset():
+        """ Returns the offset into a file this struct starts at.
+        """
+        pass
+
+    def size():
+        """ Returns the size of this struct in bytes.
+        """
+        pass
+
+    def location():
+        """ Returns the location in the template tree of this struct.
+            For example: "FILE.header.signature".
+        """
+        pass
 
 class Template():
     """ Programatic representation of a template.  Uses AST definitions to
