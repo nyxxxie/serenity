@@ -85,9 +85,9 @@ class Template():
         # Process each struct field
         for decl in struct_def.field_list:
             field = None
-            if decl is FieldDecl:
+            if type(decl) is FieldDecl:
                 field = self._process_field(ast, file, decl, struct)
-            elif decl is ArrayDecl:
+            elif type(decl) is ArrayDecl:
                 field = self._process_array(ast, file, decl, struct)
             else:
                 raise ParsingException("Encountered unhandled field type \"%s\" while parsing struct \"%s\"."
