@@ -56,7 +56,10 @@ class ArrayDecl():
 
 class Ast():
     def __init__(self, decl_list):
-        self.decl_list = decl_list
+        self.structs = []
+        for decl in decl_list:
+            if decl is StructDecl:
+                self.structs.append(decl)
 
     def __repr__(self):
         ret = ""
@@ -66,7 +69,3 @@ class Ast():
 
     def __str__(self):
         return self.__repr__()
-
-    def add_struct(self, struct):
-        self.structs.append(struct)
-        return struct
