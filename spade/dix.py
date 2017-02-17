@@ -20,9 +20,13 @@ rows = [
             (2, 20, "java"),
 ]
 
+# Please see
 proj = core.project.Project("test.db")
 proj.add_file("ld-2.24.so")
-so = proj.open_file(1)
+with proj.open_file(1) as f:
+    print(f.length())
+    print(f.replace(0, b"\x7fELF"))
+    print(f.read(0, 4))
 
 class Tree:
 

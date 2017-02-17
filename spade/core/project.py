@@ -60,7 +60,7 @@ class Project:
         except IOError as e:
             raise ProjectIOException("Failed to add file (" + e.msg + ")")
 
-    def open_file(self, id):
+    def open_file(self, id, primary=False, cache=(1024, 0x1000)):
         """
         """
         with self.db_engine().connect() as conn:
@@ -72,26 +72,28 @@ class Project:
             result.close()
             if row is None:
                 raise ProjectDBException("No record of file in DB")
-            (_, path, hash, _) = row
+            (_, path, hash, base, head) = row
             if path is None:
-                return file.File(self, id, None)
+                return file.File(self, id, None, None, primary, cache)
             try:
-                fd = open(path, "rb")
+                # fd = open(path, "rb")
+                fd = open(path, "r+b")
             except IOError as e:
                 raise ProjectIOException("Failed to open file (" + e.msg + ")")
             else:
-                if not fd.seekable():
+                try:
+                    if not fd.seekable():
+                        raise ProjectIOException("Must be seekable")
+                    assert fd.tell() == 0
+                    hasher = hashlib.sha256()
+                    for chunk in iter(lambda: fd.read(0x1000), b""):
+                        hasher.update(chunk)
+                    if hasher.digest() != hash:
+                        raise ProjectFileAlteredException("File was altered")
+                    return file._File(self, id, fd, base, head, primary, cache)
+                except ProjectException as e:
                     fd.close()
-                    raise ProjectIOException("Must be seekable")
-                assert fd.tell() == 0
-                hasher = hashlib.sha256()
-                for chunk in iter(lambda: fd.read(0x1000), b""):
-                    hasher.update(chunk)
-                if hasher.digest() != hash:
-                    fd.close()
-                    raise ProjectFileAlteredException("File has been altered")
-                fd.seek(0)
-                return file.File(self, id, fd)
+                    raise
 
     def remove_file(self, f):
         """
@@ -163,8 +165,10 @@ class Project:
             Column("path", String),
             # sha256 hash of file contents on last change
             Column("hash", Binary),
-            # head change file is at
-            Column("head_change", Binary, server_default=None)
+            # base change file is at
+            Column("base", Binary, server_default=None),
+            # head change file was left at
+            Column("head", Binary, server_default=None),
         )
         # Define changes table
         self.table_changes = Table("changes", metadata,

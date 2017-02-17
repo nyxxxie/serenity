@@ -1,68 +1,122 @@
 import hashlib
 from threading import Lock
 
+from sqlalchemy import and_
+from sqlalchemy.sql import select
+
 from . import project
 
+# On miss update cache
+CACHE_UPDATE=0
+# On miss load page from file but do not update cache
+CACHE_NOUPDATE=1
 
-class FileException(Exception):
+# End node could be in the way of start node
+HINT_UP=-1
+# Assume nodes are siblings
+HINT_NONE=0
+# Start node could be in the way of end node
+HINT_DOWN=1
 
-    pass
 
-
-class File:
+class _File:
     """
-    Provides undo and redo tree history for file.  Think of it as of
-    a quantum file that keeps all states of file at the same time. It
-    is slow to read from and unsafe to write to, so you need to
-    create a _FileView using _File.view() first.
-    """
+    Provides undo and redo tree history for file.
+     """
 
-    def __init__(self, project, id, fd):
+    def __init__(self, project, id, fd, base, head, primary, cache):
         self._project = project
         self._id = id
         self._fd = fd
+        self._base = base
+        self._head = head
+        self._primary = primary
+        self._cache = cache
+        self._xioread = Lock()
+        (self._xpgread, self._xpgwrite) = (Lock(), Lock())
+        self._pages = []
 
-    def base(self) -> bytes:
-        """
-        Returns base change for this file.
-        """
-        return self._base
+    def __enter__(self):
+        return self
 
-    def _changes(self, base: bytes, head: bytes) -> list:
-        """
-        Returns list of changes from base to head.
-        """
-        # c = self._db.cursor()
-        # c.execute("SELECT hash, parent FROM changes WHERE id = ?;",
-        #           (self._id,))
-        # changes = c.fetchall()
-        # return []
+    def __exit__(self, type, value, traceback):
+        self.close()
 
-    def _change(self, base: bytes, at: int, change_type, data: bytes) -> bytes:
+    def tell() -> bytes:
+        pass
+
+    def seek(self, hash: bytes):
+        pass
+
+    def length(self) -> int:
+        self._fd.seek(0, 2)
+        return self._fd.tell()
+
+    def read(self, at: int, length: int, policy=CACHE_UPDATE) -> bytes:
+        self._fd.seek(at)
+        return self._fd.read(length)
+
+    def insert(self, at: int, data: bytes):
+        self._fd.seek(at)
+        buf = self._fd.read()
+        self._fd.seek(at)
+        self._fd.write(data + buf)
+        self._fd.flush()
+
+    def replace(self, at: int, data: bytes):
+        self._fd.seek(at)
+        self._fd.write(data)
+        self._fd.flush()
+
+    def erase(self, at: int, length: int):
+        self._fd.seek(at + length)
+        buf = self._fd.read()
+        self._fd.seek(at)
+        self._fd.write(buf)
+        self._fd.truncate()
+        self._fd.flush()
+
+    def close(self):
+        self._fd.close()
+
+    def _read(self, hash: bytes, at: int, length: int) -> bytes:
+        with self._xioread:
+            self._fd.seek(at)
+            return self._fd.read(length)
+
+    def _changes(self, start: bytes, end: bytes) -> list:
+        """
+        Returns list of changes needed to be applied from start to end.
+        """
+        (path_start, path_end) = ([], [])
+        # with self._project.db_engine().connect() as conn:
+        #     table_changes = self._project.table_changes
+        #     sel = select([table_changes]) \
+        #           .where(and_(table_changes.c.file_id == self._id,
+        #                       table_changes.c.hash == start))
+        #     conn.execute(sel)
+
+    def _change(self, parent: bytes, at: int, change_type, data: bytes) -> bytes:
         """
         Commits a change to this file and returns its hash.
         """
         assert change_type in ('+', '-', '!')
         hasher = hashlib.sha256()
-        hasher.update(base)
+        if parent is not None:
+            hasher.update(parent)
         hasher.update(at.to_bytes(8, byteorder="big"))
-        hasher.update(ord(change_type))
+        hasher.update(change_type.encode("latin1"))
         hasher.update(data)
         current = hasher.digest()
-        # ins = self._e.insert()
-        # conn = self._e.connect()
-        # conn.execute(ins,
-
-        # c = self._db.cursor()
-        # c.execute("""
-        # INSERT INTO changes (id, hash, parent, file_pos, change_type, change)
-        # VALUES (?, ?, ?, ?, ?, ?);
-        # """, (self._id, current, base, at, change_type, data))
-        # self._db.commit()
-        # return h
+        with self._project.db_engine().connect() as conn:
+            ins = self._project.table_changes.insert()
+            conn.execute(ins,
+                         file_id=self._id, hash=current, parent=parent,
+                         file_pos=at, change_type=ord(change_type), change=data)
+        return current
 
 
-class _FileView():
+class __FileView():
     """
     Provides an ability to view and operate on a file in a specific
     state.  It also provides caching for fast reads since for each
@@ -70,13 +124,11 @@ class _FileView():
     head.
     """
 
-    def __init__(self, f, cache=(4096, 0x1000)):
-        assert len(cache) == 2
-
-        self._f = f
-        self._db = self._f._project.db
-        self._base = self._f.base()
-        self._head = self._f.base()
+    def __init__(self, file, primary, cache=(4096, 0x1000)):
+        self._file = file
+        self._base = self._file.base()
+        self._head = self._file.base()
+        self._primary = primary
 
         cur = self._f._fd.tell()
         self._f._fd.seek(0, 2)
