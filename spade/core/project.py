@@ -1,6 +1,10 @@
 import datetime
+import hashlib
 
 from sqlalchemy import create_engine, MetaData, Table, Column, Binary, Integer, String, ForeignKey
+from sqlalchemy.sql import select
+
+from . import file
 
 SCHEMA_VERSION = "0.0"
 
@@ -10,25 +14,86 @@ class ProjectException(Exception):
     pass
 
 
+class ProjectDBException(ProjectException):
+
+    pass
+
+
+class ProjectIOException(ProjectException):
+
+    pass
+
+
+class ProjectFileAlteredException(ProjectException):
+
+    pass
+
+
 class Project:
     """Represents an open session for spade."""
 
     def __init__(self, dbfile):
         self._dbfile = dbfile
-        # TODO: This should get converted to absolute path before getting passed
         self._db_engine = create_engine("sqlite:///" + dbfile)
-        self._init_db(self._db_engine)
+        self._init_db()
         self._add_info("schema_version", SCHEMA_VERSION)
         date = datetime.datetime.now()
         self._add_info("creation_datetime", date, True)
         self._add_info("update_datetime", date)
+        # TODO: Enable VACUUM
 
     def add_file(self, path):
         """
         Adds a file to the project.  Fails on adding duplicate files.  Can take
         both the path to a valid file and a currently open file object.
         """
-        pass
+        try:
+            with open(path, "rb") as f:
+                hasher = hashlib.sha256()
+                for chunk in iter(lambda: f.read(0x1000), b""):
+                    hasher.update(chunk)
+                with self.db_engine().connect() as conn:
+                    ins = self.table_files.insert()
+                    result = conn.execute(ins, path=path, hash=hasher.digest())
+                    (id,) = result.inserted_primary_key
+                    return id
+        except IOError as e:
+            raise ProjectIOException("Failed to add file (" + e.msg + ")")
+
+    def open_file(self, id, primary=False, cache=(1024, 0x1000)):
+        """
+        """
+        with self.db_engine().connect() as conn:
+            sel = select([self.table_files]) \
+                  .where(self.table_files.c.id == id) \
+                  .limit(1)
+            result = conn.execute(sel)
+            row = result.first()
+            result.close()
+            if row is None:
+                raise ProjectDBException("No record of file in DB")
+            (_, path, hash, base, head) = row
+            if path is None:
+                return file.File(self, id, None, None, primary, cache)
+            try:
+                # fd = open(path, "rb")
+                fd = open(path, "r+b")
+            except IOError as e:
+                raise ProjectIOException("Failed to open file (" + e.msg + ")")
+            else:
+                try:
+                    if not fd.seekable():
+                        raise ProjectIOException("Must be seekable")
+                    assert fd.tell() == 0
+                    hasher = hashlib.sha256()
+                    for chunk in iter(lambda: fd.read(0x1000), b""):
+                        hasher.update(chunk)
+                    if hasher.digest() != hash:
+                        raise ProjectFileAlteredException("File was altered")
+                    return file._File(self, id, fd, base, head, primary, cache)
+                except ProjectException as e:
+                    fd.close()
+                    raise
 
     def remove_file(self, f):
         """
@@ -80,10 +145,10 @@ class Project:
     def _add_info(self, key, value, nomodify=False):
         # TODO(nyxxxie): handle nomodify var
         ins = self.table_pinfo.insert()
-        conn = self._db_engine.connect()
+        conn = self.db_engine().connect()
         conn.execute(ins, key=key, value=value) # TODO: might cause problems?
 
-    def _init_db(self, engine):
+    def _init_db(self):
         """
         Creates default tables for a newly created spade project
         """
@@ -97,11 +162,13 @@ class Project:
         self.table_files = Table("files", metadata,
             Column("id", Integer, primary_key=True, autoincrement=True),
             # Relative or absolute path to this file
-            Column("path", String, unique=True),
+            Column("path", String),
             # sha256 hash of file contents on last change
             Column("hash", Binary),
-            # head change file is at
-            Column("head_change", Binary, server_default=None)
+            # base change file is at
+            Column("base", Binary, server_default=None),
+            # head change file was left at
+            Column("head", Binary, server_default=None),
         )
         # Define changes table
         self.table_changes = Table("changes", metadata,
@@ -119,5 +186,5 @@ class Project:
             Column("change", Binary)
         )
         # Add all tables to the database
-        metadata.create_all(engine)
+        metadata.create_all(self.db_engine())
         return True
