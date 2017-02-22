@@ -103,7 +103,7 @@ class TemplateParser():
 def main():
     parser = TemplateParser()
     ast = parser.parse_file("test_template.stf")
-    template = None
+    template = Template(ast)
 
     print("---------- AST ----------")
     print(ast)

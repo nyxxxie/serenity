@@ -58,13 +58,13 @@ class Ast():
     def __init__(self, decl_list):
         self.structs = []
         for decl in decl_list:
-            if decl is StructDecl:
+            if type(decl) is StructDecl:
                 self.structs.append(decl)
 
     def __repr__(self):
         ret = ""
-        for decl in self.decl_list:
-            ret += str(decl)
+        for struct in self.structs:
+            ret += str(struct)
         return ret
 
     def __str__(self):
