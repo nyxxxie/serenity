@@ -1,5 +1,5 @@
 # Spade
-Spade is a reverse engineering tool that operates directly on opaque
+Spade is an editor reverse engineering tool that operates directly on opaque
 file-resident binary data.  Unlike other tools, Spade allows you to interact
 with targets at the [file-format][1] level, meaning you can work on familar
 formats (ELF, PE, etc) with the same ease as exotic and/or obfuscated formats.
