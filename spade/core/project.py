@@ -1,7 +1,7 @@
 import datetime
 import hashlib
 
-from sqlalchemy import create_engine, MetaData, Table, Column, Binary, Integer, String, ForeignKey
+from sqlalchemy import create_engine, MetaData, Table, Column, Binary, Integer, String, ForeignKey, UniqueConstraint
 from sqlalchemy.sql import select
 
 from . import file
@@ -36,10 +36,10 @@ class Project:
         self._dbfile = dbfile
         self._db_engine = create_engine("sqlite:///" + dbfile)
         self._init_db()
-        self._add_info("schema_version", SCHEMA_VERSION)
-        date = datetime.datetime.now()
-        self._add_info("creation_datetime", date, True)
-        self._add_info("update_datetime", date)
+        # self._add_info("schema_version", SCHEMA_VERSION)
+        # date = datetime.datetime.now()
+        # self._add_info("creation_datetime", date, True)
+        # self._add_info("update_datetime", date)
         # TODO: Enable VACUUM
 
     def add_file(self, path):
@@ -57,12 +57,13 @@ class Project:
                     result = conn.execute(ins, path=path, hash=hasher.digest())
                     (id,) = result.inserted_primary_key
                     return id
-        except IOError as e:
+        except OSError as e:
             raise ProjectIOException("Failed to add file (" + e.msg + ")")
 
-    def open_file(self, id, primary=False, cache=(1024, 0x1000)):
+    def open_file(self, id, mode, primary=False, cache=(1024, 0x1000)):
         """
         """
+        assert mode in (file.RDONLY, file.RDWR)
         with self.db_engine().connect() as conn:
             sel = select([self.table_files]) \
                   .where(self.table_files.c.id == id) \
@@ -74,11 +75,13 @@ class Project:
                 raise ProjectDBException("No record of file in DB")
             (_, path, hash, base, head) = row
             if path is None:
-                return file.File(self, id, None, None, primary, cache)
+                if mode != file.RDONLY:
+                    raise ProjectIOException("No-path files can only be read")
+                return file.File(self, id, None, base, head,
+                                 file.RDONLY, primary, cache)
             try:
-                # fd = open(path, "rb")
-                fd = open(path, "r+b")
-            except IOError as e:
+                fd = open(path, mode, 0)
+            except OSError as e:
                 raise ProjectIOException("Failed to open file (" + e.msg + ")")
             else:
                 try:
@@ -90,7 +93,8 @@ class Project:
                         hasher.update(chunk)
                     if hasher.digest() != hash:
                         raise ProjectFileAlteredException("File was altered")
-                    return file._File(self, id, fd, base, head, primary, cache)
+                    return file._File(self, id, fd, base, head,
+                                      mode, primary, cache)
                 except ProjectException as e:
                     fd.close()
                     raise
@@ -164,26 +168,28 @@ class Project:
             # Relative or absolute path to this file
             Column("path", String),
             # sha256 hash of file contents on last change
-            Column("hash", Binary),
+            Column("hash", Binary(32)),
             # base change file is at
-            Column("base", Binary, server_default=None),
+            Column("base", Binary(32), server_default=None),
             # head change file was left at
-            Column("head", Binary, server_default=None),
+            Column("head", Binary(32), server_default=None),
         )
         # Define changes table
         self.table_changes = Table("changes", metadata,
             # id of file we apply changes to
             Column("file_id", None, ForeignKey("files.id")),
             # sha256 of this change
-            Column("hash", Binary),
+            Column("hash", Binary(32)),
             # sha256 of previous change
-            Column("parent", Binary),
+            Column("parent", Binary(32)),
             # position in file where change occured
             Column("file_pos", Integer),
             # change type.  '+' = insert, '-' = erase, '!' = replace
-            Column("change_type", Integer),
+            Column("change_type", String(1)),
             # bytes that were inserted or erased
-            Column("change", Binary)
+            Column("change", Binary),
+            # hash must be unique for each file
+            UniqueConstraint("file_id", "hash")
         )
         # Add all tables to the database
         metadata.create_all(self.db_engine())
