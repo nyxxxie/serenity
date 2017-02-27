@@ -23,23 +23,41 @@ HINT_NONE = 0
 HINT_DOWN = 1
 
 
+class FileAccessException(Exception):
+
+    pass
+
+
+class _FileCache:
+
+    def __init__(self, max_pages, page_size):
+        self.setparams(max_pages, page_size)
+
+    def setparams(max_pages, page_size):
+        self._max_pages = max_pages
+        self._page_size = page_size
+
+    def getparams():
+        return (self._max_pages, self._page_size)
+
+
 class _File:
     """
     Provides undo and redo tree history for file.
     """
 
-    def __init__(self, project, id, fd, base, head, mode, primary, cache):
+    def __init__(self, project, id, fd, base, head, mode, primary, cacheparams):
         self._project = project
         self._id = id
         self._fd = fd
         self._mode = mode
         self._primary = primary
-        self._cache = cache
         self._xio = Lock()
-        (self._xpgread, self._xpgwrite) = (Lock(), Lock())
-        self._pages = []
+        # pages should be readers-writer locked
+        (self._xpg, self._xpgwrite) = (Lock(), Lock())
         (self._base, self._head) = (base, base)
-        self._sz = 0
+        self._sz = self._size()
+        self._pages = [self._read(0, self._sz)]
         self.seek(head)
 
     def __enter__(self):
@@ -54,15 +72,35 @@ class _File:
     def tell(self) -> bytes:
         return self._head
 
-    def seek(self, hash: bytes):
-        self._head = hash
-        self._sz = self._size(self._head)
+    def write_inplace(self) -> bytes:
+        if self._mode != RDWR:
+            raise FileAccessException("Opened in a read-only mode")
+
+    def seek(self, hash: bytes) -> bytes:
+        with self._xpg:
+            for (type, file_pos, change) in self._changes(self._head, hash):
+                if type == '!':
+                    self._pages[0] = (self._pages[0][:file_pos]
+                                      + change
+                                      + self._pages[0][file_pos+len(change)-1:])
+                elif type == '+':
+                    self._data = (self._data[:file_pos]
+                                  + change
+                                  + self._data[file_pos:])
+                    self._sz += len(change)
+                elif type == '-':
+                    self._data = (self._data[:file_pos]
+                                  + self._data[file_pos+len(change):])
+                    self._sz -= len(change)
+            assert self._sz == len(self._data)
+            self._head = hash
+            return self._head
 
     def size(self) -> int:
         return self._sz
 
     def read(self, at: int, size: int) -> bytes:
-        return self._read(self._head, at, size)
+        return self._data[at:at+size]
 
     def insert(self, at: int, data: bytes) -> bytes:
         self._sz += len(data)
@@ -75,20 +113,22 @@ class _File:
         return self._head
 
     def erase(self, at: int, size: int) -> bytes:
-        self._sz -= length
+        self._sz -= size
         self._head = self._change(self._head, at, '-', self.read(at, size))
         return self._head
 
     def close(self):
         self._fd.close()
 
-    def _size(self, hash: bytes) -> int:
-        self._fd.seek(0, 2)
-        return self._fd.tell()
+    def _size(self) -> int:
+        with self._xio:
+            self._fd.seek(0, 2)
+            return self._fd.tell()
 
-    def _read(self, hash: bytes, at: int, size: int) -> bytes:
-        self._fd.seek(at)
-        return self._fd.read(size)
+    def _read(self, at: int, size: int) -> bytes:
+        with self._xio:
+            self._fd.seek(at)
+            return self._fd.read(size)
 
     def _path(self, root: bytes, hash: bytes) -> list:
         if root == hash:
