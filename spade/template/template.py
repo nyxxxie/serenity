@@ -1,4 +1,4 @@
-from ast import Ast, StructDecl, FieldDecl, ArrayDecl
+from .ast import Ast, StructDecl, FieldDecl, ArrayDecl
 
 ENTRY_STRUCT = "FILE"
 

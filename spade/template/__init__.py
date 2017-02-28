@@ -1,4 +1,4 @@
-fom . import parser
+from . import parser
 
 def parse_template(path):
     pass
