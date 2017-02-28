@@ -75,6 +75,20 @@ class _File:
     def write_inplace(self) -> bytes:
         if self._mode != RDWR:
             raise FileAccessException("Opened in a read-only mode")
+        for (type, file_pos, change) in self._changes(self._base, self._head):
+            if type == '!':
+                self._fd.seek(file_pos)
+                self._fd.write(change)
+            elif type == '+':
+                self._fd.seek(file_pos)
+                self._fd.write(change + self._fd.read())
+            elif type == '-':
+                self._fd.seek(file_pos + len(change))
+                rest = self._fd.read()
+                self._fd.seek(file_pos)
+                self._fd.write(rest)
+                self._fd.truncate()
+            self._fd.flush()
 
     def seek(self, hash: bytes) -> bytes:
         with self._xpg:
@@ -84,15 +98,15 @@ class _File:
                                       + change
                                       + self._pages[0][file_pos+len(change)-1:])
                 elif type == '+':
-                    self._data = (self._data[:file_pos]
-                                  + change
-                                  + self._data[file_pos:])
+                    self._pages[0] = (self._pages[0][:file_pos]
+                                      + change
+                                      + self._pages[0][file_pos:])
                     self._sz += len(change)
                 elif type == '-':
-                    self._data = (self._data[:file_pos]
-                                  + self._data[file_pos+len(change):])
+                    self._pages[0] = (self._pages[0][:file_pos]
+                                      + self._pages[0][file_pos+len(change):])
                     self._sz -= len(change)
-            assert self._sz == len(self._data)
+            assert self._sz == len(self._pages[0])
             self._head = hash
             return self._head
 
@@ -100,7 +114,7 @@ class _File:
         return self._sz
 
     def read(self, at: int, size: int) -> bytes:
-        return self._data[at:at+size]
+        return self._pages[0][at:at+size]
 
     def insert(self, at: int, data: bytes) -> bytes:
         self._sz += len(data)
@@ -160,6 +174,8 @@ class _File:
         Returns sequence of changes needed to turn data at start into data at
         end.
         """
+        # FIXME: For now it only works if both start and end are below the base
+        # in time.
         path_start = self._path(self.base(), start)
         path_end = self._path(self.base(), end)
         # counts how many common changes both paths have at their beginning
