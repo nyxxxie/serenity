@@ -69,3 +69,9 @@ class Ast():
 
     def __str__(self):
         return self.__repr__()
+
+    def struct(self, name):
+        for struct in self.structs:
+            if struct.name == name:
+                return struct
+        return None
