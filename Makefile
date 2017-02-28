@@ -1,7 +1,7 @@
-.PHONY
+.PHONY: test
 test:
-    pytest test
+	pytest -v
 
-.PHONY
+.PHONY: venv
 venv:
-    . ./venv/bin/activate
+	. ./venv/bin/activate
