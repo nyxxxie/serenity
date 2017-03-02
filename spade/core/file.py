@@ -28,6 +28,16 @@ class FileAccessException(Exception):
     pass
 
 
+class FileChangeException(Exception):
+
+    pass
+
+
+class FileBoundsException(Exception):
+
+    pass
+
+
 class _FileCache:
 
     def __init__(self, max_pages, page_size):
@@ -67,53 +77,97 @@ class _File:
         self.close()
 
     def base(self) -> bytes:
+        """
+        Return change the on-disk file is at.
+        """
         return self._base
 
-    def tell(self) -> bytes:
-        return self._head
-
-    def write_inplace(self) -> bytes:
+    def write_inplace(self, hash: bytes):
+        """
+        Write hash changes to the current file.  File must be open in RDWR mode
+        and hash must be valid.  Throws FileAccessException if file is not in
+        RDWR mode and SomethingElseException if hash change does not exist.
+        Returns number of bytes written.  WARNING: this operation is not atomic
+        at all and will corrupt the file if interrupted during write.
+        """
+        # FIXME: Must operate on small blocks
+        block_size = 0x10000
         if self._mode != RDWR:
             raise FileAccessException("Opened in a read-only mode")
-        for (type, file_pos, change) in self._changes(self._base, self._head):
-            if type == '!':
-                self._fd.seek(file_pos)
-                self._fd.write(change)
-            elif type == '+':
-                self._fd.seek(file_pos)
-                self._fd.write(change + self._fd.read())
-            elif type == '-':
-                self._fd.seek(file_pos + len(change))
-                rest = self._fd.read()
-                self._fd.seek(file_pos)
-                self._fd.write(rest)
-                self._fd.truncate()
-            self._fd.flush()
-
-    def seek(self, hash: bytes) -> bytes:
-        with self._xpg:
-            for (type, file_pos, change) in self._changes(self._head, hash):
+        with self._xio:
+            for (type, file_pos, change) in self._changes(self._base, hash):
+                print(type)
                 if type == '!':
-                    self._pages[0] = (self._pages[0][:file_pos]
-                                      + change
-                                      + self._pages[0][file_pos+len(change)-1:])
+                    self._fd.seek(file_pos)
+                    self._fd.write(change)
+                    self._fd.flush()
                 elif type == '+':
-                    self._pages[0] = (self._pages[0][:file_pos]
-                                      + change
-                                      + self._pages[0][file_pos:])
-                    self._sz += len(change)
+                    # FIXME: This will eat memory
+                    self._fd.seek(file_pos)
+                    rest = self._fd.read()
+                    self._fd.seek(file_pos)
+                    self._fd.write(change)
+                    self._fd.write(rest)
+                    self._fd.flush()
                 elif type == '-':
-                    self._pages[0] = (self._pages[0][:file_pos]
-                                      + self._pages[0][file_pos+len(change):])
-                    self._sz -= len(change)
-            assert self._sz == len(self._pages[0])
-            self._head = hash
-            return self._head
+                    change_len = len(change)
+                    for i in range(file_pos, self._size() - change_len,
+                                   block_size):
+                        self._fd.seek(i + change_len)
+                        tmp = self._fd.read(block_size)
+                        print(i, len(tmp))
+                        self._fd.seek(i)
+                        self._fd.write(tmp)
+                        self._fd.flush()
+                    self._fd.truncate()
+                else:
+                    assert False
+            self._fd.seek(0)
+            hasher = hashlib.sha256()
+            for chunk in iter(lambda: self._fd.read(0x1000), b""):
+                hasher.update(chunk)
+            table_files = self._project.table_files
+            upd = table_files.update() \
+                             .values(hash=hasher.digest(), base=hash) \
+                             .where(table_files.c.id == self._id)
+            with self._project.db_engine().connect() as conn:
+                conn.execute(upd)
+
+    def write_to(self, fd, hash: bytes):
+        pass
+
+    def seek(self, to: bytes) -> bytes:
+        """
+        Changes head to to and updates cache.  hash must be valid, otherwise
+        SomethingElseException is thrown.  Returns new head.
+        """
+        # FIXME: Fails if to is younger than base
+        for (type, file_pos, change) in self._changes(self._base, to):
+            if type == '!':
+                self._pages[0] = (self._pages[0][:file_pos]
+                                  + change
+                                  + self._pages[0][file_pos+len(change)-1:])
+            elif type == '+':
+                self._pages[0] = (self._pages[0][:file_pos]
+                                  + change
+                                  + self._pages[0][file_pos:])
+                self._sz += len(change)
+            elif type == '-':
+                self._pages[0] = (self._pages[0][:file_pos]
+                                  + self._pages[0][file_pos+len(change):])
+                self._sz -= len(change)
+        assert self._sz == len(self._pages[0])
+        self._head = to
+        return self._head
 
     def size(self) -> int:
+        """
+        Returns size of file at current head.
+        """
         return self._sz
 
     def read(self, at: int, size: int) -> bytes:
+        # FIXME: Make it use cache properly
         return self._pages[0][at:at+size]
 
     def insert(self, at: int, data: bytes) -> bytes:
@@ -135,39 +189,44 @@ class _File:
         self._fd.close()
 
     def _size(self) -> int:
-        with self._xio:
-            self._fd.seek(0, 2)
-            return self._fd.tell()
+        """
+        On-disk file length.
+        """
+        self._fd.seek(0, 2)
+        return self._fd.tell()
 
     def _read(self, at: int, size: int) -> bytes:
-        with self._xio:
-            self._fd.seek(at)
-            return self._fd.read(size)
+        """
+        Reads from on-disk file.
+        """
+        self._fd.seek(at)
+        return self._fd.read(size)
 
     def _path(self, root: bytes, hash: bytes) -> list:
+        """
+        Finds path of hash change from root.
+        """
+        # FIXME: Good exception types
         if root == hash:
             return []
-        with self._project.db_engine().connect() as conn:
+        path = []
+        while True:
+            if hash == root:
+                return path
+            if hash is None:
+                raise Exception("Reached root of the tree")
             table_changes = self._project.table_changes
-            path = []
-            while True:
-                if hash == root:
-                    return path
-                if hash is None:
-                    raise Exception("Nigger")
-                sel = select([table_changes]) \
-                      .where(and_(table_changes.c.file_id == self._id,
-                                  table_changes.c.hash == hash))
-                result = conn.execute(sel)
-                (_, _, parent, file_pos, type, change) = result.first()
-                path.insert(0, (type, file_pos, change))
-                hash = parent
-
-    def _inv(self, changes: list) -> list:
-        swap = {'+': '-', '-': '+', '!': '!'}
-        return [(swap[type], file_pos, change)
-                for (type, file_pos, change)
-                in changes]
+            sel = select([table_changes]) \
+                  .where(and_(table_changes.c.file_id == self._id,
+                              table_changes.c.hash == hash))
+            with self._project.db_engine().connect() as conn:
+                result = conn.execute(sel).first()
+                if result is not None:
+                    (_, _, parent, file_pos, type, change) = result
+                    path.insert(0, (type, file_pos, change))
+                    hash = parent
+                else:
+                    raise FileChangeException("No change")
 
     def _changes(self, start: bytes, end: bytes) -> list:
         """
@@ -176,8 +235,8 @@ class _File:
         """
         # FIXME: For now it only works if both start and end are below the base
         # in time.
-        path_start = self._path(self.base(), start)
-        path_end = self._path(self.base(), end)
+        path_start = self._path(self._base, start)
+        path_end = self._path(self._base, end)
         # counts how many common changes both paths have at their beginning
         norm = sum(1 for _ in
                    takewhile(lambda x: x[0] == x[1], zip(path_start, path_end)))
@@ -196,9 +255,17 @@ class _File:
         hasher.update(change_type.encode())
         hasher.update(data)
         current = hasher.digest()
+        ins = self._project.table_changes.insert()
         with self._project.db_engine().connect() as conn:
-            ins = self._project.table_changes.insert()
             conn.execute(ins,
                          file_id=self._id, hash=current, parent=parent,
                          file_pos=at, change_type=change_type, change=data)
         return current
+
+    def _inv(self, changes: list) -> list:
+        """
+        Returns list of inverted changes.
+        """
+        swap = {'+': '-', '-': '+', '!': '!'}
+        return [(swap[type], file_pos, change)
+                for (type, file_pos, change) in changes]
