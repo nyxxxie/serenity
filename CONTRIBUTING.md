@@ -96,6 +96,11 @@ to implement, submit an issue.  Approved feature requests will be given the
 cooresponding label.  If no one is assigned and there are no [wip] pull
 requests for that issue, feel free to implement it.
 
+When developing features, prioritize ease of use and usefulness in your
+decisions.  For example, if you're adding a new api function, you should be
+able to imagine a use case for it that necessitates its addition.  This is
+especially true when such decisions complicate the api for new users.
+
 ## Bug reporting
 Please note that the issue tracker is *not* tech support.  Please only report
 faults or issues in spade itself.  When you report, please use [this template][5]
