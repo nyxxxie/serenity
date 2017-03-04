@@ -73,7 +73,7 @@ class _File:
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, _, _, _):
         self.close()
 
     def base(self) -> bytes:
@@ -82,40 +82,38 @@ class _File:
         """
         return self._base
 
-    def write_inplace(self, hash: bytes):
+    def write_inplace(self, change: bytes):
         """
-        Write hash changes to the current file.  File must be open in RDWR mode
-        and hash must be valid.  Throws FileAccessException if file is not in
-        RDWR mode and SomethingElseException if hash change does not exist.
-        Returns number of bytes written.  WARNING: this operation is not atomic
-        at all and will corrupt the file if interrupted during write.
+        Write changes until the change to the file.  File must be open in RDWR
+        mode and change must be valid.  Throws FileAccessException if file is
+        not in RDWR mode and SomethingElseException if change does not exist.
+        Returns number of bytes written.  This operation is not atomic at all
+        and will corrupt the file if interrupted.
         """
         # FIXME: Must operate on small blocks
-        block_size = 0x10000
         if self._mode != RDWR:
             raise FileAccessException("Opened in a read-only mode")
         with self._xio:
-            for (type, file_pos, change) in self._changes(self._base, hash):
-                print(type)
+            block_size = 0x10000
+            for (type, file_pos, data) in self._changes(self._base, change):
                 if type == '!':
                     self._fd.seek(file_pos)
-                    self._fd.write(change)
+                    self._fd.write(data)
                     self._fd.flush()
                 elif type == '+':
                     # FIXME: This will eat memory
                     self._fd.seek(file_pos)
                     rest = self._fd.read()
                     self._fd.seek(file_pos)
-                    self._fd.write(change)
+                    self._fd.write(data)
                     self._fd.write(rest)
                     self._fd.flush()
                 elif type == '-':
-                    change_len = len(change)
-                    for i in range(file_pos, self._size() - change_len,
+                    data_len = len(data)
+                    for i in range(file_pos, self._size() - data_len,
                                    block_size):
-                        self._fd.seek(i + change_len)
+                        self._fd.seek(i + data_len)
                         tmp = self._fd.read(block_size)
-                        print(i, len(tmp))
                         self._fd.seek(i)
                         self._fd.write(tmp)
                         self._fd.flush()
@@ -128,18 +126,18 @@ class _File:
                 hasher.update(chunk)
             table_files = self._project.table_files
             upd = table_files.update() \
-                             .values(hash=hasher.digest(), base=hash) \
+                             .values(hash=hasher.digest(), base=change) \
                              .where(table_files.c.id == self._id)
             with self._project.db_engine().connect() as conn:
                 conn.execute(upd)
 
-    def write_to(self, fd, hash: bytes):
+    def write_to(self, fd, change: bytes):
         pass
 
     def seek(self, to: bytes) -> bytes:
         """
-        Changes head to to and updates cache.  hash must be valid, otherwise
-        SomethingElseException is thrown.  Returns new head.
+        Changes head to to and updates cache.  to must be a valid change,
+        otherwise SomethingElseException is thrown.  Returns new head.
         """
         # FIXME: Fails if to is younger than base
         for (type, file_pos, change) in self._changes(self._base, to):
@@ -202,29 +200,30 @@ class _File:
         self._fd.seek(at)
         return self._fd.read(size)
 
-    def _path(self, root: bytes, hash: bytes) -> list:
+    def _path(self, root: bytes, change: bytes) -> list:
         """
-        Finds path of hash change from root.
+        Finds path to change from root.
         """
         # FIXME: Good exception types
-        if root == hash:
+        if root == change:
             return []
         path = []
         while True:
-            if hash == root:
+            if change == root:
                 return path
-            if hash is None:
-                raise Exception("Reached root of the tree")
+            if change is None:
+                raise FileChangeException("Reached root of the tree, "
+                                          "still no sign change")
             table_changes = self._project.table_changes
             sel = select([table_changes]) \
                   .where(and_(table_changes.c.file_id == self._id,
-                              table_changes.c.hash == hash))
+                              table_changes.c.hash == change))
             with self._project.db_engine().connect() as conn:
                 result = conn.execute(sel).first()
                 if result is not None:
-                    (_, _, parent, file_pos, type, change) = result
-                    path.insert(0, (type, file_pos, change))
-                    hash = parent
+                    (_, _, parent, file_pos, type, data) = result
+                    path.insert(0, (type, file_pos, data))
+                    change = parent
                 else:
                     raise FileChangeException("No change")
 

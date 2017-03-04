@@ -61,11 +61,11 @@ class Project:
         except OSError as e:
             raise ProjectIOException("Failed to add file (" + e.msg + ")")
 
-    def open_file(self, id, mode, primary=False, cache=(1024, 0x1000)):
+    def open_file(self, id, mode):
         """
-        Opens a file specified by id in mode with cache tuple (number of pages,
-        size of each page).  Primary _File will update head on any new change.
+        Opens a file specified by id in mode.
         """
+        cache = (1024, 0x1000)
         if mode not in (file.RDONLY, file.RDWR):
             raise ProjectIOException("Bad mode")
         sel = select([self.table_files.c.path, self.table_files.c.hash,
@@ -84,7 +84,7 @@ class Project:
             if mode != file.RDONLY:
                 raise ProjectIOException("No-path files can only be read")
             return file.File(self, id, None, base, head,
-                             file.RDONLY, primary, cache)
+                             file.RDONLY, True, cache)
         try:
             fd = open(path, mode, buffering=0)
         except OSError as e:
@@ -92,7 +92,7 @@ class Project:
         else:
             try:
                 if not fd.seekable():
-                    raise ProjectIOException("Must be seekable")
+                    raise ProjectIOException("Not seekable")
                 assert fd.tell() == 0
                 hasher = hashlib.sha256()
                 for chunk in iter(lambda: fd.read(0x1000), b""):
