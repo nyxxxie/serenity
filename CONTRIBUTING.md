@@ -64,7 +64,7 @@ excellent way to do so!
 Spade uses the [gitflow][3] development model.  Branches other than develop and
 master are to take the form `<type>/<name>`.  For example, a new feature branch
 that implements a widget should be named `feature/new_widget`.  Do not make
-changes in develop or master.
+changes in develop or master.  Please favor underscores for spaces over dashes.
 
 ## Code style
 Code must adhere to [PEP8][4] with the following additions:
@@ -75,7 +75,8 @@ Code must adhere to [PEP8][4] with the following additions:
       1. Special class methods (`__init__`, `__str__`, etc)
       2. Public class methods
       3. Private class methods (prefixed with _)
-  * Refrain from using double underscore prefixes for methods and variables
+  * Refrain from using double underscore prefixes for methods and variables.
+  * Please use [type hints][7] where applicable.
 
 ## Pull requests
 If you want to contribute code, it is advised you create a [wip] pull request
@@ -114,3 +115,4 @@ directly.  Nyxxie's public key can be found on [keybase][6].
 [4]: https://www.python.org/dev/peps/pep-0008/#code-lay-out
 [5]: BUG_TEMPLATE.txt
 [6]: https://keybase.io/nyxxie/
+[7]: https://www.python.org/dev/peps/pep-0484/
