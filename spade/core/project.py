@@ -9,25 +9,7 @@ from . import file
 SCHEMA_VERSION = "0.0"
 
 
-class ProjectException(Exception):
-
-    pass
-
-
-class ProjectDBException(ProjectException):
-
-    pass
-
-
-class ProjectIOException(ProjectException):
-
-    pass
-
-
-class ProjectFileAlteredException(ProjectException):
-
-    pass
-
+class SpadeProjectException(Exception): pass
 
 class Project:
     """Represents an open session for spade."""
@@ -43,85 +25,13 @@ class Project:
         # TODO: Enable VACUUM
 
     def add_file(self, path):
-        """
-        Adds a file to the project.  Fails on adding duplicate files.  Can take
-        both the path to a valid file and a currently open file object.
-        """
-        try:
-            with open(path, "rb") as f:
-                hasher = hashlib.sha256()
-                for chunk in iter(lambda: f.read(0x1000), b""):
-                    hasher.update(chunk)
-                ins = self.table_files.insert() \
-                                      .values(path=path, hash=hasher.digest())
-                with self.db_engine().connect() as conn:
-                    result = conn.execute(ins)
-                    (id,) = result.inserted_primary_key
-                    return id
-        except OSError as e:
-            raise ProjectIOException("Failed to add file (" + e.msg + ")")
+        pass
 
-    def open_file(self, id, mode):
-        """
-        Opens a file specified by id in mode.
-        """
-        cache = (1024, 0x1000)
-        if mode not in (file.RDONLY, file.RDWR):
-            raise ProjectIOException("Bad mode")
-        sel = select([self.table_files.c.path, self.table_files.c.hash,
-                      self.table_files.c.base, self.table_files.c.head]) \
-              .where(self.table_files.c.id == id) \
-              .limit(1)
-        row = None
-        with self.db_engine().connect() as conn:
-            result = conn.execute(sel)
-            row = result.first()
-            result.close()
-        if row is None:
-            raise ProjectDBException("No record of file in DB")
-        (path, hash, base, head) = row
-        if path is None:
-            if mode != file.RDONLY:
-                raise ProjectIOException("No-path files can only be read")
-            return file.File(self, id, None, base, head,
-                             file.RDONLY, True, cache)
-        try:
-            fd = open(path, mode, buffering=0)
-        except OSError as e:
-            raise ProjectIOException("Failed to open file (" + e.msg + ")")
-        else:
-            try:
-                if not fd.seekable():
-                    raise ProjectIOException("Not seekable")
-                assert fd.tell() == 0
-                hasher = hashlib.sha256()
-                for chunk in iter(lambda: fd.read(0x1000), b""):
-                    hasher.update(chunk)
-                if hasher.digest() != hash:
-                    raise ProjectFileAlteredException("File was altered")
-                return file._File(self, id, fd, base, head,
-                                    mode, primary, cache)
-            except ProjectException as e:
-                fd.close()
-                raise
-
-    def del_file(self, id) -> bool:
-        """
-        Returns True if delete was successful.
-        """
-        return self.del_files([id]) == 1
-
-    def del_files(self, ids):
-        """
-        Removes files in from the project.  Returns number of files removed.
-        """
-        # FIXME(fst3a): Corresponding changes are not cascadely removed
-        delet = self.table_files.delete(self.table_files.c.id.in_(ids))
-        with self.db_engine().connect() as conn:
-            return conn.execute(delet).rowcount
+    def open_file(self, path, mode):
+        pass
 
     def db_engine(self):
-        return self._db_engine
+        pass
 
     def files(self):
         """
