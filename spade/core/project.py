@@ -1,12 +1,12 @@
 import datetime
 import hashlib
-
+from .file import sfile, filemode
 from sqlalchemy import create_engine, MetaData, Table, Column, Binary, Integer, String, ForeignKeyConstraint, UniqueConstraint
 from sqlalchemy.sql import select
 
 from . import file
 
-SCHEMA_VERSION = "0.0"
+SCHEMA_VERSION = "0.1"
 
 
 class SpadeProjectException(Exception): pass
@@ -15,39 +15,37 @@ class Project:
     """Represents an open session for spade."""
 
     def __init__(self, dbfile):
+        # TODO: specify that dbfile is a temporary storage file, can be :memory:
         self._dbfile = dbfile
-        self._db_engine = create_engine("sqlite:///" + dbfile, echo=True)
+        self._engine = create_engine("sqlite:///" + dbfile, echo=True)
         self._init_db()
-        self._add_info("schema_version", SCHEMA_VERSION)
-        date = datetime.datetime.now()
-        self._add_info("creation_datetime", date, nomodify=True)
-        self._add_info("update_datetime", date)
-        # TODO: Enable VACUUM
+        self._update_project_info()
 
-    def add_file(self, path):
-        pass
+    def save(self, path: str=self._dbfile):
+        if path == ":memory:":
+            raise SpaceProjectException("Can't save to memory-mapped database...")
 
-    def open_file(self, path, mode):
-        pass
+        raise SpadeProjectException("Can't save project, operation not implemented.")
+
+    def open_file(self, path: str, mode: filemode=filemode.rw):
+        return sfile(self, path, mode)
 
     def db_engine(self):
-        pass
+        return self._engine
 
     def files(self):
         """
         Returns a list of files in the project.  Tuple format is (id, path,
         contents hash, base change, head change).
         """
-        sel = select([self.table_files.c.id,
-                      self.table_files.c.path, self.table_files.c.hash,
-                      self.table_files.c.base, self.table_files.c.head])
-        # if ids is not None:
-        #     sel = sel.where(self.table_files.c._id.in_(ids))
+        s = select([table_files.path])
+
+        paths = []
         with self.db_engine().connect() as conn:
-            result = conn.execute(sel)
-            files = list(result)
-            result.close()
-            return files
+            conn.execute(ins)
+        result = con
+
+        return paths
 
     def add_template(self, template):
         """
@@ -82,8 +80,18 @@ class Project:
 
     def _add_info(self, key, value, nomodify=False):
         # TODO(nyxxxie): handle nomodify var
-        ins = self.table_pinfo.insert() \
-                              .values(key=key, value=value)
+        ins = self.table_pinfo.insert().values(
+            key=key,
+            value=value)
+
+        with self.db_engine().connect() as conn:
+            conn.execute(ins)
+
+    def _register_file(self, path, hash_):
+        ins = self.table_files.insert().values(
+            path=path,
+            hash=hash_)
+
         with self.db_engine().connect() as conn:
             conn.execute(ins)
 
@@ -92,11 +100,13 @@ class Project:
         Table metadata creation.
         """
         metadata = MetaData()
+
         # Define project_info table
         self.table_pinfo = Table("project_info", metadata,
             Column("key", String, primary_key=True),
             Column("value", String)
         )
+
         # Define files table
         self.table_files = Table("files", metadata,
             Column("id", Integer, primary_key=True, autoincrement=True),
@@ -104,33 +114,18 @@ class Project:
             Column("path", String),
             # sha256 hash of file contents on last change
             Column("hash", Binary(32)),
-            # base change file is at
-            Column("base", Binary(32), server_default=None),
-            # head change file was left at
-            Column("head", Binary(32), server_default=None)
         )
-        # Define changes table
-        self.table_changes = Table("changes", metadata,
-            # id of file we apply changes to
-            Column("file_id", None),
-            # sha256 of this change
-            Column("hash", Binary(32)),
-            # sha256 of previous change
-            Column("parent", Binary(32)),
-            # position in file where change occured
-            Column("file_pos", Integer),
-            # change type.  '+' = insert, '-' = erase, '!' = replace
-            Column("change_type", String(1)),
-            # bytes that were inserted or erased
-            Column("change", Binary),
-            # hash must be unique for each file
-            UniqueConstraint("file_id", "hash"),
-            # update changes tree if parent record in files is updated
-            # FIXME(fst3a): this doesn't work, changes stay there
-            ForeignKeyConstraint(["file_id"], ["files.id"],
-                                 onupdate="CASCADE",
-                                 ondelete="CASCADE")
-        )
+
         # Add all tables to the database
         metadata.create_all(self.db_engine())
+
         return True
+
+    def _update_project_info(self):
+        date = datetime.datetime.now()
+        if self._engine.dialect.has_table(self._engine, self.table_pinfo):
+            self._add_info("schema_version", SCHEMA_VERSION)
+            self._add_info("creation_datetime", date, nomodify=True)
+            self._add_info("update_datetime", date)
+        else:
+            self._add_info("update_datetime", date)
