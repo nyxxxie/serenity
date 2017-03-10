@@ -1,5 +1,4 @@
 import datetime
-import hashlib
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from .file import sfile, filemode
@@ -15,6 +14,9 @@ class Project:
     def __init__(self, dbfile):
         self._db_init(dbfile)
         self._db_update()
+
+    def __str__(self):
+        return "<project (dbfile=\"%s\")>" % (self._dbfile)
 
     def save(self, path: str=None):
         if path is None:
@@ -88,12 +90,20 @@ class Project:
         session.merge(info)
         session.commit()
 
-        return None
+    def _register_file(self, path, file_hash):
+        # Create db session
+        Session = sessionmaker(bind=self._db_engine)
+        session = Session()
+
+        # Add info to table
+        info = ProjectFile(path=path, sha256=file_hash)
+        session.merge(info)
+        session.commit()
 
     def _db_init(self, path: str):
         engine = create_engine(
             "sqlite:///" + path,         # Create sqlite db and engine for sqlalchemy
-            echo=True)                   # TODO: This should probably be commented out at some point
+            echo=False)                  # TODO: This should probably be commented out at some point
         Base.metadata.create_all(engine) # Adds all of our tables into the sqlite db
         self._dbfile = path
         self._db_engine = engine
