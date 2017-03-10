@@ -20,3 +20,19 @@ def test_project_initialization(cleanup):
     # Verify default tables exist
     assert check_table(dbfile, "project_info")
     assert check_table(dbfile, "files")
+
+def test_project_reopen(cleanup):
+    project = Project(dbfile)
+    assert project is not None
+
+    # Verify default tables exist
+    assert check_table(dbfile, "project_info")
+    assert check_table(dbfile, "files")
+
+    # Reopen project
+    project = Project(dbfile)
+    assert project is not None
+
+    # Verify default tables exist
+    assert check_table(dbfile, "project_info")
+    assert check_table(dbfile, "files")
