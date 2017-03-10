@@ -1,8 +1,8 @@
-from enum import Enum
+import hashlib
 
 class SpadeFileException(Exception): pass
 
-class filemode(Enum):
+class filemode:
     read = "rb"
     write = "wb"
     rw = "wb+"
@@ -24,12 +24,12 @@ class sfile:
     """
 
     def __init__(self, project, path: str, mode: filemode=filemode.rw):
-        self.path  = path
-        self.perms = perms
+        self.path = path
+        self.mode = mode
         self.project = project
-        self._file = open(path, perms)
-
-        project._register_file(self, file_hash)
+        self._closed = False
+        self._file = open(path, mode)
+        project._register_file(path, self.sha256())
 
     def __enter__(self):
         return self
@@ -47,6 +47,7 @@ class sfile:
         """
         Closes a file.
         """
+        self._closed = True
         self._file.close()
 
     def size(self) -> int:
@@ -96,3 +97,11 @@ class sfile:
         Deletes bytes from file.
         """
         assert SpaceFileException("Operation \"erase\" unimplemented...")
+
+    def sha256(self):
+        """
+        Calculates the sha256 hash of the file.
+        """
+        m = hashlib.sha256()
+        m.update(self._file.read())
+        return m.digest()
