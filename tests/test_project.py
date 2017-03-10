@@ -7,13 +7,12 @@ dbfile = "testdb.sdb"
 
 @pytest.fixture()
 def cleanup():
-    print("PRE-TEST")
     yield
-    print("POST-TEST")
     if os.path.isfile(dbfile):
         os.remove(dbfile)
 
-def test_project_initialization(cleanup):
+@pytest.mark.usefixtures("cleanup")
+def test_project_initialization():
     project = Project(dbfile)
     assert project is not None
 
@@ -21,7 +20,8 @@ def test_project_initialization(cleanup):
     assert check_table(dbfile, "project_info")
     assert check_table(dbfile, "project_files")
 
-def test_project_reopen(cleanup):
+@pytest.mark.usefixtures("cleanup")
+def test_project_reopen():
     project = Project(dbfile)
     assert project is not None
 
