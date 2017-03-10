@@ -2,12 +2,9 @@ import datetime
 import hashlib
 from .file import sfile, filemode
 from sqlalchemy import create_engine, MetaData, Table, Column, Binary, Integer, String, ForeignKeyConstraint, UniqueConstraint
-from sqlalchemy.sql import select
-
-from . import file
+from sqlalchemy import sql
 
 SCHEMA_VERSION = "0.1"
-
 
 class SpadeProjectException(Exception): pass
 
@@ -21,7 +18,10 @@ class Project:
         self._init_db()
         self._update_project_info()
 
-    def save(self, path: str=self._dbfile):
+    def save(self, path: str=None):
+        if path is None:
+            path = self._dbfile
+
         if path == ":memory:":
             raise SpaceProjectException("Can't save to memory-mapped database...")
 
@@ -38,7 +38,7 @@ class Project:
         Returns a list of files in the project.  Tuple format is (id, path,
         contents hash, base change, head change).
         """
-        s = select([table_files.path])
+        s = sql.select([table_files.path])
 
         paths = []
         with self.db_engine().connect() as conn:
@@ -78,8 +78,7 @@ class Project:
         """
         pass
 
-    def _add_info(self, key, value, nomodify=False):
-        # TODO(nyxxxie): handle nomodify var
+    def _add_info(self, key, value, update=False):
         ins = self.table_pinfo.insert().values(
             key=key,
             value=value)
@@ -123,7 +122,7 @@ class Project:
 
     def _update_project_info(self):
         date = datetime.datetime.now()
-        if self._engine.dialect.has_table(self._engine, self.table_pinfo):
+        if self._engine.has_table("project_info"):
             self._add_info("schema_version", SCHEMA_VERSION)
             self._add_info("creation_datetime", date, nomodify=True)
             self._add_info("update_datetime", date)
