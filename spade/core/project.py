@@ -1,8 +1,8 @@
 import datetime
 import hashlib
+from sqlalchemy import create_engine
 from .file import sfile, filemode
-from sqlalchemy import create_engine, MetaData, Table, Column, Binary, Integer, String, ForeignKeyConstraint, UniqueConstraint
-from sqlalchemy import sql
+from .models.project import Base, ProjectInfo, ProjectFile
 
 SCHEMA_VERSION = "0.1"
 
@@ -12,11 +12,8 @@ class Project:
     """Represents an open session for spade."""
 
     def __init__(self, dbfile):
-        # TODO: specify that dbfile is a temporary storage file, can be :memory:
-        self._dbfile = dbfile
-        self._engine = create_engine("sqlite:///" + dbfile, echo=True)
-        self._init_db()
-        self._update_project_info()
+        self._db_init(path)
+        self._db_update()
 
     def save(self, path: str=None):
         if path is None:
@@ -25,7 +22,7 @@ class Project:
         if path == ":memory:":
             raise SpaceProjectException("Can't save to memory-mapped database...")
 
-        raise SpadeProjectException("Can't save project, operation not implemented.")
+        self._db_update()
 
     def open_file(self, path: str, mode: filemode=filemode.rw):
         return sfile(self, path, mode)
@@ -38,13 +35,7 @@ class Project:
         Returns a list of files in the project.  Tuple format is (id, path,
         contents hash, base change, head change).
         """
-        s = sql.select([table_files.path])
-
         paths = []
-        with self.db_engine().connect() as conn:
-            conn.execute(ins)
-        result = con
-
         return paths
 
     def add_template(self, template):
@@ -78,53 +69,38 @@ class Project:
         """
         pass
 
-    def _add_info(self, key, value, update=False):
-        ins = self.table_pinfo.insert().values(
-            key=key,
-            value=value)
-
-        with self.db_engine().connect() as conn:
-            conn.execute(ins)
-
-    def _register_file(self, path, hash_):
-        ins = self.table_files.insert().values(
-            path=path,
-            hash=hash_)
-
-        with self.db_engine().connect() as conn:
-            conn.execute(ins)
-
-    def _init_db(self):
+    def get_info(self, key: str=None):
         """
-        Table metadata creation.
+        Retrieves information about the project (schema version, database path,
+        etc).  If no key is specified, this function will return a list of all
+        project info available.
         """
-        metadata = MetaData()
+        pass
 
-        # Define project_info table
-        self.table_pinfo = Table("project_info", metadata,
-            Column("key", String, primary_key=True),
-            Column("value", String)
-        )
+    def _add_info(self, key, value):
+        # Create db session
+        Session = sessionmaker(bind=self._db_engine)
+        session = Session()
 
-        # Define files table
-        self.table_files = Table("files", metadata,
-            Column("id", Integer, primary_key=True, autoincrement=True),
-            # Relative or absolute path to this file
-            Column("path", String),
-            # sha256 hash of file contents on last change
-            Column("hash", Binary(32)),
-        )
+        # Add info to table
+        info = ProjectInfo(key=key, value=value)
+        session.merge(entry)
+        session.commit()
 
-        # Add all tables to the database
-        metadata.create_all(self.db_engine())
+        return None
 
-        return True
+    def _db_init(self, path):
+        self._dbfile = path
+        self._db_engine = create_engine(
+            "sqlite:///" + path,         # Create sqlite db and engine for sqlalchemy
+            echo=True)                   # TODO: This should probably be commented out at some point
+        Base.metadata.create_all(engine) # Adds all of our tables into the sqlite db
 
-    def _update_project_info(self):
+    def _db_update(self):
         date = datetime.datetime.now()
-        if self._engine.has_table("project_info"):
+        if self.get_info("schema_version") is None:
             self._add_info("schema_version", SCHEMA_VERSION)
-            self._add_info("creation_datetime", date, nomodify=True)
+            self._add_info("creation_datetime", date)
             self._add_info("update_datetime", date)
-        else:
+        else
             self._add_info("update_datetime", date)
