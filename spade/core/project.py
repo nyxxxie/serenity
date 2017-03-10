@@ -1,6 +1,7 @@
 import datetime
 import hashlib
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from .file import sfile, filemode
 from .models.project import Base, ProjectInfo, ProjectFile
 
@@ -12,7 +13,7 @@ class Project:
     """Represents an open session for spade."""
 
     def __init__(self, dbfile):
-        self._db_init(path)
+        self._db_init(dbfile)
         self._db_update()
 
     def save(self, path: str=None):
@@ -84,17 +85,18 @@ class Project:
 
         # Add info to table
         info = ProjectInfo(key=key, value=value)
-        session.merge(entry)
+        session.merge(info)
         session.commit()
 
         return None
 
-    def _db_init(self, path):
-        self._dbfile = path
-        self._db_engine = create_engine(
+    def _db_init(self, path: str):
+        engine = create_engine(
             "sqlite:///" + path,         # Create sqlite db and engine for sqlalchemy
             echo=True)                   # TODO: This should probably be commented out at some point
         Base.metadata.create_all(engine) # Adds all of our tables into the sqlite db
+        self._dbfile = path
+        self._db_engine = engine
 
     def _db_update(self):
         date = datetime.datetime.now()
@@ -102,5 +104,5 @@ class Project:
             self._add_info("schema_version", SCHEMA_VERSION)
             self._add_info("creation_datetime", date)
             self._add_info("update_datetime", date)
-        else
+        else:
             self._add_info("update_datetime", date)
