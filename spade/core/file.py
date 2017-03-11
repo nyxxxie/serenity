@@ -52,7 +52,9 @@ class sfile:
 
     def size(self) -> int:
         """
-        Returns the size of the file.
+        Returns the size of the file in bytes.
+
+        :return: Size of file in bytes.
         """
         return os.stat(self.path).st_size
 
@@ -64,7 +66,24 @@ class sfile:
 
     def seek(self, offset: int=0, from_what: int=0):
         """
-        Sets the cursor position.
+        Sets the cursor position relative to some position.
+
+        :param offset: Offset into file relative to from_what parameter.
+        :param from_what: Determines what the above offset is relative to.
+        :type offset: int
+        :type from_what: int
+        :return: Cursor position after the seek operation completes.
+
+        The reference point specified by the ``from_what`` parameter should
+        take on one of the following values:
+
+            * 0 - Offset from beginning of file.
+            * 1 - Offset from current cursor position.
+            * 2 - Offset from end of file.
+
+        This parameter may be omitted, and will default to 0 (beginning of
+        file).
+
         """
         return self.seek(offset, from_what)
 
