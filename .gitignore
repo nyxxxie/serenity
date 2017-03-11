@@ -1,6 +1,7 @@
 venv
-docs/_build
+docs/.build
 spade.egg-info
 .cache
 .eggs/
 *__pycache__
+tests/testdb.sdb

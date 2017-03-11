@@ -1,85 +1,57 @@
 import datetime
-from sqlalchemy import create_engine, Metadata, Table, Column, Binary, Integer, String, ForeignKey
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from .file import sfile, filemode
+from .models.project import Base, ProjectInfo, ProjectFile
+
+SCHEMA_VERSION = "0.1"
+
+class SpadeProjectException(Exception): pass
 
 class Project:
     """Represents an open session for spade."""
 
-    def __create_db(self, engine):
-        """
-        Creates default tables for a newly created spade project
-        """
-        metadata = MetaData()
-
-        # Define project_info table
-        self.table_pinfo = Table("project_info", metadata,
-            Column("key", String, primary_key=True),
-            Column("value", String)
-        )
-
-        # Define files table
-        self.table_files = Table("files", metadata,
-            Column("id", Integer, primary_key=True, autoincrement=True),
-            Column("path", String, unique=True),                # Relative or absolute path to this file
-            Column("hash", Binary),                             # sha256 hash of file contents on last change
-            Column("head_change", Binary, server_default=None), # head change file is at
-        )
-
-        # Define changes table
-        self.table_changes = Table("changes", metadata,
-            Column("file_id", None, ForeignKey("files.id"),     # id of file we apply changes to
-            Column("hash", Binary),                             # sha256 of this change
-            Column("parent", Binary),                           # sha256 of previous change
-            Column("file_pos", Integer),                        # position in file where change occured
-            Column("change_type", Integer),                     # change type (TODO: make this enum).  '+' = insert, '-' = erase, '!' = replace
-            Column("change" Binary)                             # bytes that were inserted or erased
-        )
-
-        # Define change_comments table
-        self.table_changes = Table("change_comments", metadata,
-            Column("change", None, ForeignKey("changes.hash"),  # hash of the change this comment refers to
-            Column("text", String)                              # comment text
-        )
-
-        # Add all tables to the database
-        metadata.create_all(engine)
-
-        return True
-
-    def __add_info(self, key, value, nomodify=False):
-        # TODO: handle nomodify var
-        ins = self.table_pinfo.insert()
-        conn = self__db_engine.connect()
-        conn.execute(ins, key=key, value=value) # TODO: might cause problems?
-
     def __init__(self, dbfile):
-        self.__dbfile = dbfile
-        self.__db_engine = create_engine("sqlite:///"+dbfile)
-        self.__init_db(self.__db_engine)
-        self.__add_info("schema_version", "1")
-        self.__add_info("creation_datetime", datetime.datetime.now(), True)
-        self.__add_info("update_datetime", datetime.datetime.now())
+        self._db_init(dbfile)
+        self._db_update()
 
-    def add_file(self, path):
-        """
-        Adds a file to the project.  Fails on adding duplicate files.  Can take
-        both the path to a valid file and a currently open file object.
-        """
-        pass
+    def __str__(self):
+        return "<project (dbfile=\"%s\")>" % (self.db_file)
 
-    def remove_file(self, f):
-        """
-        Removes a file from the project.
-        """
-        pass
+    def save(self, path: str=None):
+        if path is None:
+            path = self.db_file
+
+        if path == ":memory:":
+            raise SpaceProjectException("Can't save to memory-mapped database...")
+
+        self._db_update()
+
+    def open_file(self, path: str, mode: filemode=filemode.rw):
+        return sfile(self, path, mode)
 
     def db_engine(self):
-        return self.__db_engine
+        """
+        Returns the sqlalchemy engine currently in use.
+        """
+        return self._engine
 
     def files(self):
         """
-        Returns a list of files in the project.  Does not print files that have been added but closed.
+        Returns a list of files in the project.  Tuple format is (id, path,
+        contents hash, base change, head change).
         """
-        pass
+        paths = []
+
+        # Create db session
+        Session = sessionmaker(bind=self._db_engine)
+        session = Session()
+
+        # Add info to table
+        for row in session.query(ProjectFile):
+            paths.append(row.path)
+
+        return paths
 
     def add_template(self, template):
         """
@@ -111,3 +83,62 @@ class Project:
         Gets the associated template for a file.
         """
         pass
+
+    def get_info(self, key: str=None):
+        """
+        Retrieves information about the project (schema version, database path,
+        etc).  If no key is specified, this function will return a list of all
+        project info available.
+        """
+        # Create db session
+        Session = sessionmaker(bind=self._db_engine)
+        session = Session()
+
+        if key is None:
+            info = {}
+            for row in session.query(ProjectInfo):
+                info[row.key] = row.value
+            return info
+        else:
+            entry = session.query(ProjectInfo).filter_by(key=key).first()
+            if entry is not None:
+                return entry.value
+
+        return None
+
+    def _add_info(self, key, value):
+        # Create db session
+        Session = sessionmaker(bind=self._db_engine)
+        session = Session()
+
+        # Add info to table
+        info = ProjectInfo(key=key, value=value)
+        session.merge(info)
+        session.commit()
+
+    def _register_file(self, path, file_hash):
+        # Create db session
+        Session = sessionmaker(bind=self._db_engine)
+        session = Session()
+
+        # Add info to table
+        info = ProjectFile(path=path, sha256=file_hash)
+        session.merge(info)
+        session.commit()
+
+    def _db_init(self, path: str):
+        engine = create_engine(
+            "sqlite:///" + path,         # Create sqlite db and engine for sqlalchemy
+            echo=False)                  # TODO: This should probably be commented out at some point
+        Base.metadata.create_all(engine) # Adds all of our tables into the sqlite db
+        self.db_file = path
+        self._db_engine = engine
+
+    def _db_update(self):
+        date = datetime.datetime.now()
+        if self.get_info("schema_version") is None:
+            self._add_info("schema_version", SCHEMA_VERSION)
+            self._add_info("creation_datetime", date)
+            self._add_info("update_datetime", date)
+        else:
+            self._add_info("update_datetime", date)
