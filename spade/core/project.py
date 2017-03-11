@@ -16,11 +16,11 @@ class Project:
         self._db_update()
 
     def __str__(self):
-        return "<project (dbfile=\"%s\")>" % (self._dbfile)
+        return "<project (dbfile=\"%s\")>" % (self.db_file)
 
     def save(self, path: str=None):
         if path is None:
-            path = self._dbfile
+            path = self.db_file
 
         if path == ":memory:":
             raise SpaceProjectException("Can't save to memory-mapped database...")
@@ -31,6 +31,9 @@ class Project:
         return sfile(self, path, mode)
 
     def db_engine(self):
+        """
+        Returns the sqlalchemy engine currently in use.
+        """
         return self._engine
 
     def files(self):
@@ -39,6 +42,15 @@ class Project:
         contents hash, base change, head change).
         """
         paths = []
+
+        # Create db session
+        Session = sessionmaker(bind=self._db_engine)
+        session = Session()
+
+        # Add info to table
+        for row in session.query(ProjectFile):
+            paths.append(row.path)
+
         return paths
 
     def add_template(self, template):
@@ -78,7 +90,21 @@ class Project:
         etc).  If no key is specified, this function will return a list of all
         project info available.
         """
-        pass
+        # Create db session
+        Session = sessionmaker(bind=self._db_engine)
+        session = Session()
+
+        if key is None:
+            info = {}
+            for row in session.query(ProjectInfo):
+                info[row.key] = row.value
+            return info
+        else:
+            entry = session.query(ProjectInfo).filter_by(key=key).first()
+            if entry is not None:
+                return entry.value
+
+        return None
 
     def _add_info(self, key, value):
         # Create db session
@@ -105,7 +131,7 @@ class Project:
             "sqlite:///" + path,         # Create sqlite db and engine for sqlalchemy
             echo=False)                  # TODO: This should probably be commented out at some point
         Base.metadata.create_all(engine) # Adds all of our tables into the sqlite db
-        self._dbfile = path
+        self.db_file = path
         self._db_engine = engine
 
     def _db_update(self):
