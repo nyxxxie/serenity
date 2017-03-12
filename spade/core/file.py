@@ -1,11 +1,12 @@
+import os
 import hashlib
 
 class SpadeFileException(Exception): pass
 
 class filemode:
     read = "rb"
-    write = "wb"
-    rw = "wb+"
+    write = "ab"
+    rw = "ab+"
 
 class sfile:
     """
@@ -49,7 +50,7 @@ class sfile:
         though in the current implementation of sfile we write directly to the
         file on disk, we must inform the project that we've updated it.
         """
-        pass
+        self.project._update_file_hash(self.path, self.sha256())
 
     def close(self, save: bool=True):
         """
@@ -103,7 +104,7 @@ class sfile:
         file).
 
         """
-        return self.seek(offset, from_what)
+        return self._file.seek(offset, from_what)
 
     def read(self, amount: int=None) -> int:
         """
@@ -115,7 +116,7 @@ class sfile:
                        cursor.
         :return: Amount of bytes read.
         """
-        return self._file.read(size)
+        return self._file.read(amount)
 
     def write(self, data: bytes) -> int:
         """
@@ -161,6 +162,12 @@ class sfile:
         """
         assert SpaceFileException("Operation \"erase\" unimplemented...")
 
+    def truncate(self, size: int=None):
+        """
+        Truncates the file's size.
+        """
+        return self._file.truncate(size)
+
     def sha256(self) -> bytes:
         """
         Calculates the sha256 hash of the file.
@@ -168,5 +175,8 @@ class sfile:
         :return: SHA256 hash (in bytes).
         """
         m = hashlib.sha256()
+        cursor = self.tell()
+        self.seek()
         m.update(self._file.read())
+        self.seek(cursor)
         return m.digest()

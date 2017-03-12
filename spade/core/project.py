@@ -29,22 +29,6 @@ class Project:
     def __str__(self):
         return "<project (dbfile=\"%s\")>" % (self.db_file)
 
-    def save(self, path: str=None):
-        """
-        Saves project to backing database.  This should be called before you
-        close a project that has been interacted with.
-
-        :param path: File to save project to.  Don't actually use this parameter.
-        :type path: str
-        """
-        if path is None:
-            path = self.db_file
-
-        if path == ":memory:":
-            raise SpaceProjectException("Can't save to memory-mapped database...")
-
-        self._db_update()
-
     def open_file(self, path: str, mode: filemode=filemode.rw) -> sfile:
         """
         Opens a file to be tracked by this project.
@@ -130,6 +114,18 @@ class Project:
         # Add info to table
         info = ProjectFile(path=path, sha256=file_hash)
         session.merge(info)
+        session.commit()
+
+    def _update_file_hash(self, path, file_hash):
+        # Create db session
+        Session = sessionmaker(bind=self._db_engine)
+        session = Session()
+
+        entry = session.query(ProjectFile).filter_by(path=path).first()
+        if entry is None:
+            assert SpadeProjectException("Can't update hash, no file registered at \"%s\"." % path)
+        entry.sha256 = file_hash
+
         session.commit()
 
     def _db_init(self, path: str):
