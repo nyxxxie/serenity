@@ -10,18 +10,10 @@ class filemode:
 
 class sfile:
     """
-    Provides an interface to files that is similar to the built-in file type.
-    This is required so that the main project class can catch changes to files
-    it is tracking.  This also allows for implementing features like change
-    history and undo/redo later on.  This class should not be used directly,
-    instead use project's open_file method.
-
-    Implementation wise, despite the fact that sfile aims to be a transparent
-    wrapper over the built-in file class, we currently reimplement similar
-    methods over simply subclassing file.  This is done to place some limits on
-    how files can be opened, as well as allows us to assure that any future
-    versions of the builtin file type don't add in new functions that evade our
-    hooks that plugin developers might use.
+    Provies a wrapper over the built-in file that is used to help a spade
+    project track changes and status of a file.  This object offers all of the
+    functionality found in the original file, with a few extra methods added on
+    top to enable some spade-specific functionality.
     """
 
     def __init__(self, project, path: str, mode: filemode=filemode.rw):
@@ -44,6 +36,9 @@ class sfile:
     def __str__(self):
         return self.__repr__()
 
+    def __getattr__(self, name):
+        return getattr(self._file, name)
+
     def save(self):
         """
         Saves a file that has been modified.  This is requied because, even
@@ -51,37 +46,6 @@ class sfile:
         file on disk, we must inform the project that we've updated it.
         """
         self.project._update_file_hash(self.path, self.sha256())
-
-    def close(self, save: bool=True):
-        """
-        Closes a file.
-
-        :param save: Determines if we should automatically save this file on close.
-        :type save: bool
-        """
-        # Save file before we close it
-        if save:
-            self.save()
-
-        # Close file and indicate that we've done so
-        self._file.close()
-        self._closed = True
-
-    def size(self) -> int:
-        """
-        Returns the size of the file in bytes.
-
-        :return: Size of file in bytes.
-        """
-        return os.stat(self.path).st_size
-
-    def tell(self) -> int:
-        """
-        Indicates where the cursor for this file is currently positioned.
-
-        :return: Cursor position.
-        """
-        return self._file.tell()
 
     def seek(self, offset: int=0, from_what: int=0):
         """
@@ -106,27 +70,21 @@ class sfile:
         """
         return self._file.seek(offset, from_what)
 
-    def read(self, amount: int=None) -> int:
+    def close(self, save: bool=True):
         """
-        Reads bytes from file.  If amount is not specified, the function will
-        read until the end of the file.
+        Closes a file.
 
-        :param amount: Amount of bytes to read.  If this is None or an amount
-                       isn't specified, read will read all bytes after the
-                       cursor.
-        :return: Amount of bytes read.
+        :param save: Determines if we should automatically save this file on close.
+        :type save: bool
         """
-        return self._file.read(amount)
+        # Save file before we close it
+        if save:
+            self.save()
 
-    def write(self, data: bytes) -> int:
-        """
-        Writes bytes to file.
+        # Close file and indicate that we've done so
+        self._file.close()
+        self._closed = True
 
-        :param data: Bytes to write.
-        :type  data: bytes
-        :return: Amount of bytes written.
-        """
-        return self._file.write(data)
 
     def insert(self, data: bytes) -> int:
         """
@@ -161,12 +119,6 @@ class sfile:
         :return: Amount of bytes erased.
         """
         assert SpaceFileException("Operation \"erase\" unimplemented...")
-
-    def truncate(self, size: int=None):
-        """
-        Truncates the file's size.
-        """
-        return self._file.truncate(size)
 
     def sha256(self) -> bytes:
         """
