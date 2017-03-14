@@ -84,6 +84,7 @@ currently uses [sphinx][8] for generating documentation, docstrings will be
 displayed as [reStructuredText][9].  Docstrings, therefore,  may make use it's
 markup to add emphasis, charts, code examples, etc to their docstrings.
 
+### Methods
 Docstrings for methods should describe that method's purpose, arguments, and 
 return value at minimum.  A good rule of thumb to follow is that a user should
 know when and how to use a method simply by looking at its signature and
@@ -94,7 +95,9 @@ docstring.  The following is an example of an acceptable dostring:
         Sets the cursor position relative to some position.
 
         :param offset: Offset into file relative to from_what parameter.
+        :type  offset: int
         :param from_what: Determines what the above offset is relative to.
+        :type  from_what: int
         :return: Cursor position after the seek operation completes.
 
         The reference point specified by the ``from_what`` parameter should
@@ -104,13 +107,12 @@ docstring.  The following is an example of an acceptable dostring:
             * 1 - Offset from current cursor position.
             * 2 - Offset from end of file.
 
-        This parameter may be omitted, and will default to 0 (beginning of
-        file).
-
+        The ``from_what`` parameter may be omitted, and will default to 0
+        (beginning of file).
         """
-        ...
 ```
 
+### Classes
 Docstrings for classes should describe that class's purpose in the project.  A
 rule of thumb to go by with class docstrings is that a developer should be able
 to know exactly what the class is for and how it is meant to be used by reading
