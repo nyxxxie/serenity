@@ -78,6 +78,46 @@ Code must adhere to [PEP8][4] with the following additions:
   * Refrain from using double underscore prefixes for methods and variables.
   * Please use [type hints][7] where applicable.
 
+## Documentation
+All methods and classes should have docstrings written for them.  As spade
+currently uses [sphinx][8] for generating documentation, docstrings will be
+displayed as [reStructuredText][9].  Docstrings, therefore,  may make use it's
+markup to add emphasis, charts, code examples, etc to their docstrings.
+
+Docstrings for methods should describe that method's purpose, arguments, and 
+return value at minimum.  A good rule of thumb to follow is that a user should
+know when and how to use a method simply by looking at its signature and
+docstring.  The following is an example of an acceptable dostring:
+```python
+    def seek(self, offset: int=0, from_what: int=0) -> int:
+        """
+        Sets the cursor position relative to some position.
+
+        :param offset: Offset into file relative to from_what parameter.
+        :type  offset: int
+        :param from_what: Determines what the above offset is relative to.
+        :type  from_what: int
+        :return: Cursor position after the seek operation completes.
+
+        The reference point specified by the ``from_what`` parameter should
+        take on one of the following values:
+
+            * 0 - Offset from beginning of file.
+            * 1 - Offset from current cursor position.
+            * 2 - Offset from end of file.
+
+        This parameter may be omitted, and will default to 0 (beginning of
+        file).
+
+        """
+        ...
+```
+
+Docstrings for classes should describe that class's purpose in the project.  A
+rule of thumb to go by with class docstrings is that a developer should be able
+to know exactly what the class is for and how it is meant to be used by reading
+the docstring by itself.
+
 ## Pull requests
 If you want to contribute code, it is advised you create a [wip] pull request
 so that others know that you are currently working on a specific feature.
@@ -116,3 +156,5 @@ directly.  Nyxxie's public key can be found on [keybase][6].
 [5]: BUG_TEMPLATE.txt
 [6]: https://keybase.io/nyxxie/
 [7]: https://www.python.org/dev/peps/pep-0484/
+[8]: http://www.sphinx-doc.org
+[9]: http://www.sphinx-doc.org/en/stable/rest.html
