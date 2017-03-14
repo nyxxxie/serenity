@@ -94,9 +94,7 @@ docstring.  The following is an example of an acceptable dostring:
         Sets the cursor position relative to some position.
 
         :param offset: Offset into file relative to from_what parameter.
-        :type  offset: int
         :param from_what: Determines what the above offset is relative to.
-        :type  from_what: int
         :return: Cursor position after the seek operation completes.
 
         The reference point specified by the ``from_what`` parameter should
