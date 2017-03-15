@@ -17,7 +17,8 @@ def testfile1():
     path = "testfile1"
     copyfile(orig_path, path)
     yield path
-    os.remove(path)
+    if os.path.exists(path): # We might have already deleted the file in a test
+        os.remove(path)
 
 @pytest.fixture()
 def testfile2():
@@ -31,7 +32,8 @@ def testfile2():
     path = "testfile2"
     copyfile(orig_path, path)
     yield path
-    os.remove(path)
+    if os.path.exists(path): # We might have already deleted the file in a test
+        os.remove(path)
 
 @pytest.fixture()
 def project():
