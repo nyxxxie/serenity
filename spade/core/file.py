@@ -47,14 +47,12 @@ class sfile:
         """
         self.project._update_file_hash(self.path, self.sha256())
 
-    def seek(self, offset: int=0, from_what: int=0):
+    def seek(self, offset: int=0, from_what: int=0) -> int:
         """
         Sets the cursor position relative to some position.
 
         :param offset: Offset into file relative to from_what parameter.
-        :type  offset: int
         :param from_what: Determines what the above offset is relative to.
-        :type  from_what: int
         :return: Cursor position after the seek operation completes.
 
         The reference point specified by the ``from_what`` parameter should
@@ -64,9 +62,8 @@ class sfile:
             * 1 - Offset from current cursor position.
             * 2 - Offset from end of file.
 
-        This parameter may be omitted, and will default to 0 (beginning of
-        file).
-
+        The ``from_what`` parameter may be omitted, and will default to 0
+        (beginning of file).
         """
         return self._file.seek(offset, from_what)
 
@@ -126,9 +123,17 @@ class sfile:
 
         :return: SHA256 hash (in bytes).
         """
+        return hash_file(self.path)
+
+def hash_file(path: str) -> bytes:
+    """
+    Utility function that calculates the hash of a file.
+
+    :param path: Path to the file to hash.
+    :type  path: str
+    """
+    with open(path, "rb") as f:
+        f.seek(0,0) # seek to beginning of file
         m = hashlib.sha256()
-        cursor = self.tell()
-        self.seek()
-        m.update(self._file.read())
-        self.seek(cursor)
+        m.update(f.read())
         return m.digest()
