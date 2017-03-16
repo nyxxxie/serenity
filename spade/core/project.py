@@ -1,7 +1,8 @@
+import os
 import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .file import sfile, filemode
+from .file import sfile, filemode, hash_file
 from .models.project import Base, ProjectInfo, ProjectFile
 
 SCHEMA_VERSION = "0.1"
@@ -19,12 +20,6 @@ class Project:
 
     def __init__(self, dbfile):
         self._db_init(dbfile)
-        if self.get_info("schema_version") is None:
-            pass # TODO: Initialize database (move table creation here?)
-        else:
-            pass # TODO: Validate database (check files, other info) and load any necessary data
-
-        self._db_update()
 
     def __str__(self):
         return "<project (dbfile=\"%s\")>" % (self.db_file)
@@ -56,14 +51,8 @@ class Project:
         :return: A list of all files tracked by the project.
         """
         paths = []
-
-        # Create db session
-        Session = sessionmaker(bind=self._db_engine)
-        session = Session()
-
-        # Add info to table
-        for row in session.query(ProjectFile):
-            paths.append(row.path)
+        for entry in self._db_get_files():
+            paths.append(entry.path)
 
         return paths
 
@@ -106,6 +95,14 @@ class Project:
         session.merge(info)
         session.commit()
 
+    def _db_get_files(self):
+        # Create db session
+        Session = sessionmaker(bind=self._db_engine)
+        session = Session()
+
+        # Add info to table
+        return session.query(ProjectFile)
+
     def _register_file(self, path, file_hash):
         # Create db session
         Session = sessionmaker(bind=self._db_engine)
@@ -129,6 +126,7 @@ class Project:
         session.commit()
 
     def _db_init(self, path: str):
+        # Create engine
         engine = create_engine(
             "sqlite:///" + path,         # Create sqlite db and engine for sqlalchemy
             echo=False)                  # TODO: This should probably be commented out at some point
@@ -136,11 +134,36 @@ class Project:
         self.db_file = path
         self._db_engine = engine
 
-    def _db_update(self):
+        # Initialize database or load info
         date = datetime.datetime.now()
         if self.get_info("schema_version") is None:
             self._add_info("schema_version", SCHEMA_VERSION)
             self._add_info("creation_datetime", date)
             self._add_info("update_datetime", date)
         else:
-            self._add_info("update_datetime", date)
+            self._db_validate()
+            self._db_update()
+
+    def _db_validate(self):
+        # Make sure project version string is compatible with this version of spade
+        schema_version = self.get_info("schema_version")
+        if schema_version != SCHEMA_VERSION:
+            raise SpadeProjectException("Project schema version \"%s\" is incompatible with this version of spade." % schema_version)
+
+        # Make sure all files tracked by his project exist and match their stored hashes
+        for entry in self._db_get_files():
+            # Make sure file exists
+            if not os.path.exists(entry.path):
+                raise SpadeProjectException("Could not find tracked file \"%s\"." % entry.path)
+
+            # Make sure file hash matches
+            if hash_file(entry.path) != entry.sha256:
+                raise SpadeProjectException("File \"%s\" has been modified since last open." % entry.path)
+
+    def _db_update(self):
+        if self.get_info("schema_version") is None:
+            raise SpadeProjectException("Can't update uninitialized database.")
+
+        date = datetime.datetime.now()
+        self._add_info("update_datetime", date)
+

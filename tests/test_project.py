@@ -77,7 +77,7 @@ def test_fail_modified_file(testfile1, testfile2, project):
 
     assert caught
 
-def test_fail_deleted_file(testfile1, testfile2, project):
+def test_fail_deleted_file(testfile1, project):
     assert project is not None
 
     # Open file (and thereby register it in the project)
@@ -88,12 +88,13 @@ def test_fail_deleted_file(testfile1, testfile2, project):
     # Simulate an external delete
     os.remove(testfile1)
 
+    caught = False
     try:
         project = Project(dbfile)
     except SpadeProjectException as e:
-        assert True # TODO: check to make sure specific exception relates to a mismatch
+        caught = True
 
-    assert False # We should have failed checksumming testfile1
+    assert caught
 
 def test_get_all_info(project):
     assert project is not None
