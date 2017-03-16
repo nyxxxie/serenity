@@ -1,5 +1,5 @@
 venv
-docs/_build
+docs/.build
 spade.egg-info
 .cache
 .eggs/
