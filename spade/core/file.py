@@ -1,26 +1,19 @@
+import os
 import hashlib
 
 class SpadeFileException(Exception): pass
 
 class filemode:
     read = "rb"
-    write = "wb"
-    rw = "wb+"
+    write = "ab"
+    rw = "ab+"
 
 class sfile:
     """
-    Provides an interface to files that is similar to the built-in file type.
-    This is required so that the main project class can catch changes to files
-    it is tracking.  This also allows for implementing features like change
-    history and undo/redo later on.  This class should not be used directly,
-    instead use project's open_file method.
-
-    Implementation wise, despite the fact that sfile aims to be a transparent
-    wrapper over the built-in file class, we currently reimplement similar
-    methods over simply subclassing file.  This is done to place some limits on
-    how files can be opened, as well as allows us to assure that any future
-    versions of the builtin file type don't add in new functions that evade our
-    hooks that plugin developers might use.
+    Provies a wrapper over the built-in file that is used to help a spade
+    project track changes and status of a file.  This object offers all of the
+    functionality found in the original file, with a few extra methods added on
+    top to enable some spade-specific functionality.
     """
 
     def __init__(self, project, path: str, mode: filemode=filemode.rw):
@@ -43,35 +36,23 @@ class sfile:
     def __str__(self):
         return self.__repr__()
 
-    def close(self):
-        """
-        Closes a file.
-        """
-        self._closed = True
-        self._file.close()
+    def __getattr__(self, name):
+        return getattr(self._file, name)
 
-    def size(self) -> int:
+    def save(self):
         """
-        Returns the size of the file in bytes.
+        Saves a file that has been modified.  This is requied because, even
+        though in the current implementation of sfile we write directly to the
+        file on disk, we must inform the project that we've updated it.
+        """
+        self.project._update_file_hash(self.path, self.sha256())
 
-        :return: Size of file in bytes.
-        """
-        return os.stat(self.path).st_size
-
-    def tell(self) -> bytes:
-        """
-        Indicates where the cursor for this file is currently positioned.
-        """
-        return self._file.tell()
-
-    def seek(self, offset: int=0, from_what: int=0):
+    def seek(self, offset: int=0, from_what: int=0) -> int:
         """
         Sets the cursor position relative to some position.
 
         :param offset: Offset into file relative to from_what parameter.
         :param from_what: Determines what the above offset is relative to.
-        :type offset: int
-        :type from_what: int
         :return: Cursor position after the seek operation completes.
 
         The reference point specified by the ``from_what`` parameter should
@@ -81,46 +62,78 @@ class sfile:
             * 1 - Offset from current cursor position.
             * 2 - Offset from end of file.
 
-        This parameter may be omitted, and will default to 0 (beginning of
-        file).
+        The ``from_what`` parameter may be omitted, and will default to 0
+        (beginning of file).
+        """
+        return self._file.seek(offset, from_what)
 
+    def close(self, save: bool=True):
         """
-        return self.seek(offset, from_what)
+        Closes a file.
 
-    def read(self, size: int=None) -> bytes:
+        :param save: Determines if we should automatically save this file on close.
+        :type save: bool
         """
-        Reads bytes from file.
-        """
-        return self._file.read(size)
+        # Save file before we close it
+        if save:
+            self.save()
 
-    def write(self, data: bytes):
-        """
-        Writes bytes to file.
-        """
-        return self._file.write(data)
+        # Close file and indicate that we've done so
+        self._file.close()
+        self._closed = True
 
-    def insert(self, data: bytes):
+
+    def insert(self, data: bytes) -> int:
         """
+        **NOT IMPLEMENTED**
         Insert bytes into file starting at the current cursor position.
+
+        :param data: Bytes to insert.
+        :type  data: bytes
+        :return: Amount of bytes inserted.
         """
         assert SpaceFileException("Operation \"insert\" unimplemented...")
 
-    def replace(self, data: bytes):
+    def replace(self, data: bytes) -> int:
         """
         Replaces bytes in file starting at the current cursor position.
+
+        :param data: Bytes to replace.
+        :type  data: bytes
+        :return: Amount of bytes replaced.
         """
         return self._file.write(data)
 
-    def erase(self, size: int=None):
+    def erase(self, size: int=None) -> int:
         """
+        **NOT IMPLEMENTED**
         Deletes bytes from file.
+
+        :param size: Amount of bytes to erase.  If this is None or no amount
+                     specified, erase will erase all bytes after the cursor's
+                     current position.
+        :type size: int
+        :return: Amount of bytes erased.
         """
         assert SpaceFileException("Operation \"erase\" unimplemented...")
 
-    def sha256(self):
+    def sha256(self) -> bytes:
         """
         Calculates the sha256 hash of the file.
+
+        :return: SHA256 hash (in bytes).
         """
+        return hash_file(self.path)
+
+def hash_file(path: str) -> bytes:
+    """
+    Utility function that calculates the hash of a file.
+
+    :param path: Path to the file to hash.
+    :type  path: str
+    """
+    with open(path, "rb") as f:
+        f.seek(0,0) # seek to beginning of file
         m = hashlib.sha256()
-        m.update(self._file.read())
+        m.update(f.read())
         return m.digest()
