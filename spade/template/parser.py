@@ -42,7 +42,6 @@ class TemplateParser():
 
         return None
 
-    # TODO: start work here when ast is done
     def p_ast(self, p):
         """ ast : declaration_list """
         p[0] = Ast(p[1])
@@ -99,17 +98,3 @@ class TemplateParser():
             print("Parsing error at line:%i, col:%i - Unexpected token \"%s\"" % (line, col, p.type))
         else:
             print("Syntax error at EOF")
-
-def main():
-    parser = TemplateParser()
-    ast = parser.parse_file("test_template.stf")
-    template = Template(ast)
-
-    print("---------- AST ----------")
-    print(ast)
-    print("------- TEMPLATE --------")
-    print(template)
-    print("-------------------------")
-
-if __name__ == "__main__":
-    main()

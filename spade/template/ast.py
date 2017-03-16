@@ -1,7 +1,5 @@
 class AstException(Exception): pass
 
-# TODO: Figure out how AST should be organized before continuing with parser and template.  Check parser.py for the todo on where to start when ast is done
-
 class StructDecl():
     """ Contains an ordered series of data of varied types. """
     def __init__(self, name, field_list=[]):
