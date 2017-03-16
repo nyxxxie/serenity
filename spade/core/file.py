@@ -1,127 +1,139 @@
+import os
 import hashlib
-import mmap
-from threading import Lock
 
-from . import project
+class SpadeFileException(Exception): pass
 
+class filemode:
+    read = "rb"
+    write = "ab"
+    rw = "ab+"
 
-class FileException(Exception):
-
-    pass
-
-
-class _File:
+class sfile:
     """
-    Provides undo and redo tree history for file.  Think of it as of
-    a quantum file that keeps all states of file at the same time. It
-    is slow to read from and unsafe to write to, so you need to
-    create a _FileView using _File.view() first.
+    Provies a wrapper over the built-in file that is used to help a spade
+    project track changes and status of a file.  This object offers all of the
+    functionality found in the original file, with a few extra methods added on
+    top to enable some spade-specific functionality.
     """
 
-    def __init__(self, project, id):
-        self._project = project
-        self._db = self._project.db
-        self._id = id
-        (path, self._base) = self._queryinfo()
-        if path is not None:
-            try:
-                self._fd = open(path, "rb")
-            except OSError as e:
-                raise FileException("open() failed: {}".format(e.msg))
-        else:
-            self._fd = None
+    def __init__(self, project, path: str, mode: filemode=filemode.rw):
+        self.path = path
+        self.mode = mode
+        self.project = project
+        self._closed = False
+        self._file = open(path, mode)
+        project._register_file(path, self.sha256())
 
-    def _queryinfo(self) -> (str, bytes):
-        c = self._db.cursor()
-        c.execute("SELECT path, head_change FROM files WHERE id = ?;",
-                  (self._id,))
-        info = c.fetchone()
-        assert info is not None, "Bad id"
-        return tuple(info)
+    def __enter__(self):
+        return self
 
-    def view(self):
-        return _FileView(self)
+    def __exit__(self, type, value, tb):
+        self.close()
 
-    def base(self) -> bytes:
-        return self._base
+    def __repr__(self):
+        return "<sfile \"%s\">" % self.path
 
-    def _changes(self, base: bytes, head: bytes) -> list:
-        c = self._db.cursor()
-        c.execute("SELECT (hash, parent) FROM changes WHERE id = ?;",
-                  (self._id,))
-        changes = c.fetchall()
-        return []
+    def __str__(self):
+        return self.__repr__()
 
-    def _change(self, base: bytes, at: int, change_type, data: bytes) -> bytes:
-        assert change_type in "+-!"
+    def __getattr__(self, name):
+        return getattr(self._file, name)
+
+    def save(self):
+        """
+        Saves a file that has been modified.  This is requied because, even
+        though in the current implementation of sfile we write directly to the
+        file on disk, we must inform the project that we've updated it.
+        """
+        self.project._update_file_hash(self.path, self.sha256())
+
+    def seek(self, offset: int=0, from_what: int=0) -> int:
+        """
+        Sets the cursor position relative to some position.
+
+        :param offset: Offset into file relative to from_what parameter.
+        :param from_what: Determines what the above offset is relative to.
+        :return: Cursor position after the seek operation completes.
+
+        The reference point specified by the ``from_what`` parameter should
+        take on one of the following values:
+
+            * 0 - Offset from beginning of file.
+            * 1 - Offset from current cursor position.
+            * 2 - Offset from end of file.
+
+        The ``from_what`` parameter may be omitted, and will default to 0
+        (beginning of file).
+        """
+        return self._file.seek(offset, from_what)
+
+    def close(self, save: bool=True):
+        """
+        Closes a file.
+
+        :param save: Determines if we should automatically save this file on close.
+        :type save: bool
+        """
+        # Save file before we close it
+        if save:
+            self.save()
+
+        # Close file and indicate that we've done so
+        self._file.close()
+        self._closed = True
+
+
+    def insert(self, data: bytes) -> int:
+        """
+        **NOT IMPLEMENTED**
+        Insert bytes into file starting at the current cursor position.
+
+        :param data: Bytes to insert.
+        :type  data: bytes
+        :return: Amount of bytes inserted.
+        """
+        assert SpaceFileException("Operation \"insert\" unimplemented...")
+
+    def replace(self, data: bytes) -> int:
+        """
+        Replaces bytes in file starting at the current cursor position.
+
+        :param data: Bytes to replace.
+        :type  data: bytes
+        :return: Amount of bytes replaced.
+        """
+        return self._file.write(data)
+
+    def erase(self, size: int=None) -> int:
+        """
+        **NOT IMPLEMENTED**
+        Deletes bytes from file.
+
+        :param size: Amount of bytes to erase.  If this is None or no amount
+                     specified, erase will erase all bytes after the cursor's
+                     current position.
+        :type size: int
+        :return: Amount of bytes erased.
+        """
+        assert SpaceFileException("Operation \"erase\" unimplemented...")
+
+    def sha256(self) -> bytes:
+        """
+        Calculates the sha256 hash of the file.
+
+        :return: SHA256 hash (in bytes).
+        """
+        return hash_file(self.path)
+
+def hash_file(path: str) -> bytes:
+    """
+    Utility function that calculates the hash of a file.
+
+    :param path: Path to the file to hash.
+    :type  path: str
+    """
+    with open(path, "rb") as f:
+        f.seek(0,0) # seek to beginning of file
         m = hashlib.sha256()
-        m.update(base)
-        m.update(at.to_bytes(8, byteorder="big"))
-        m.update(change_type.encode("ascii"))
-        m.update(data)
-        h = m.digest()
-        c = self._db.cursor()
-        c.execute("""
-        INSERT INTO changes (id, hash, parent, file_pos, change_type, change)
-        VALUES (?, ?, ?, ?, ?, ?);
-        """, (self._id, h, base, at, change_type, data))
-        self._db.commit()
-        return h
-
-
-class _FileView():
-    """
-    Provides an ability to view and operate on a file in a specific
-    state.  It also provides caching for fast reads since for each
-    read call File must apply all changes since file's base to current
-    head.
-    """
-
-    def __init__(self, f, cache=(4096, 0x1000)):
-        assert len(cache) == 2
-
-        self._f = f
-        self._db = self._f._project.db
-        self._base = self._f.base()
-        self._head = self._f.base()
-        # Default is 4096 pages 4kiB each, that is 4MiB of cache memory
-        (self._pagecount, self._pagesize) = cache
-        self._pages = []
-
-        cur = self._f._fd.tell()
-        self._f._fd.seek(0, 2)
-        self._len = self._f._fd.tell()
-        self._f._fd.seek(cur, 0)
-
-    def length(self) -> int:
-        return self._len
-
-    def read(self, at: int, length: int) -> bytes:
-        assert at >= 0
-        assert length >= 0
-        if (at + length) >= self._len:
-            raise FileException("Read beyond file end")
-        self._f._fd.seek(at, 0)
-        return self._f._fd.read()
-
-    def insert(self, at: int, data: bytes):
-        assert at >= 0
-        self._head = self._f._change(self._head, at, '+', data)
-        self._len += len(data)
-
-    def replace(self, at: int, data: bytes):
-        assert at >= 0
-        if (at + len(data)) >= self._len:
-            raise FileException("Replace beyond file end")
-        cur = self.read(at, len(data))
-        diff = bytes([a ^ b for (a, b) in zip(cur, data)])
-        self._head = self._f._change(self._head, at, '!', diff)
-
-    def erase(self, at: int, length: int):
-        assert at >= 0
-        assert length >= 0
-        if (at + length) >= self._len:
-            raise FileException("Erase beyond file end")
-        cur = self.read(at, length)
-        self._head = self._f._change(self._head, at, '-', cur)
-        self._len -= length
+        m.update(f.read())
+        return m.digest()

@@ -14,7 +14,8 @@ setup(
         'PyQt5',
         'pyyaml',
         'sqlalchemy',
-        'Sphinx'
+        'Sphinx',
+        'pytest'
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],

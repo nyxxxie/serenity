@@ -1,113 +1,169 @@
+import os
 import datetime
-from sqlalchemy import create_engine, Metadata, Table, Column, Binary, Integer, String, ForeignKey
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from .file import sfile, filemode, hash_file
+from .models.project import Base, ProjectInfo, ProjectFile
+
+SCHEMA_VERSION = "0.1"
+
+class SpadeProjectException(Exception): pass
 
 class Project:
-    """Represents an open session for spade."""
-
-    def __create_db(self, engine):
-        """
-        Creates default tables for a newly created spade project
-        """
-        metadata = MetaData()
-
-        # Define project_info table
-        self.table_pinfo = Table("project_info", metadata,
-            Column("key", String, primary_key=True),
-            Column("value", String)
-        )
-
-        # Define files table
-        self.table_files = Table("files", metadata,
-            Column("id", Integer, primary_key=True, autoincrement=True),
-            Column("path", String, unique=True),                # Relative or absolute path to this file
-            Column("hash", Binary),                             # sha256 hash of file contents on last change
-            Column("head_change", Binary, server_default=None), # head change file is at
-        )
-
-        # Define changes table
-        self.table_changes = Table("changes", metadata,
-            Column("file_id", None, ForeignKey("files.id"),     # id of file we apply changes to
-            Column("hash", Binary),                             # sha256 of this change
-            Column("parent", Binary),                           # sha256 of previous change
-            Column("file_pos", Integer),                        # position in file where change occured
-            Column("change_type", Integer),                     # change type (TODO: make this enum).  '+' = insert, '-' = erase, '!' = replace
-            Column("change" Binary)                             # bytes that were inserted or erased
-        )
-
-        # Define change_comments table
-        self.table_changes = Table("change_comments", metadata,
-            Column("change", None, ForeignKey("changes.hash"),  # hash of the change this comment refers to
-            Column("text", String)                              # comment text
-        )
-
-        # Add all tables to the database
-        metadata.create_all(engine)
-
-        return True
-
-    def __add_info(self, key, value, nomodify=False):
-        # TODO: handle nomodify var
-        ins = self.table_pinfo.insert()
-        conn = self__db_engine.connect()
-        conn.execute(ins, key=key, value=value) # TODO: might cause problems?
+    """
+    Stores the state and data of a Spade session.  Specifically, a project
+    stores information on files that were opened, templates, and file metadata.
+    Additionally, any data saved by plugins, analysis, etc is stored in a
+    project.  Projects by default store this data directly on disk in a sqlite
+    database.
+    """
 
     def __init__(self, dbfile):
-        self.__dbfile = dbfile
-        self.__db_engine = create_engine("sqlite:///"+dbfile)
-        self.__init_db(self.__db_engine)
-        self.__add_info("schema_version", "1")
-        self.__add_info("creation_datetime", datetime.datetime.now(), True)
-        self.__add_info("update_datetime", datetime.datetime.now())
+        self._db_init(dbfile)
 
-    def add_file(self, path):
-        """
-        Adds a file to the project.  Fails on adding duplicate files.  Can take
-        both the path to a valid file and a currently open file object.
-        """
-        pass
+    def __str__(self):
+        return "<project (dbfile=\"%s\")>" % (self.db_file)
 
-    def remove_file(self, f):
+    def open_file(self, path: str, mode: filemode=filemode.rw) -> sfile:
         """
-        Removes a file from the project.
+        Opens a file to be tracked by this project.
+
+        :param path: Path to file that should be opened.
+        :type  path: str
+        :param mode: Mode to open file in (default: read/write).
+        :type  mode: :ref:`filemode <file>`
+        :return: A :ref:`sfile <file>` object corresponding to the file.
         """
-        pass
+        return sfile(self, path, mode)
 
     def db_engine(self):
-        return self.__db_engine
+        """
+        Returns the sqlalchemy engine currently in use.
+
+        :return: sqlalchemy engine currently in use.
+        """
+        return self._engine
 
     def files(self):
         """
-        Returns a list of files in the project.  Does not print files that have been added but closed.
-        """
-        pass
+        Returns a list of all files tracked by the project.
 
-    def add_template(self, template):
+        :return: A list of all files tracked by the project.
         """
-        Adds a template to the project.  Fails on adding duplicate templates.
-        Can take both the path to a valid file and a currently open file object.
-        """
-        pass
+        paths = []
+        for entry in self._db_get_files():
+            paths.append(entry.path)
 
-    def remove_template(self, template):
-        """
-        Remove template from project.
-        """
-        pass
+        return paths
 
-    def templates(self):
+    def get_info(self, key: str=None):
         """
-        Returns a list of templates in the project.
-        """
-        pass
+        Retrieves information about the project (schema version, database path,
+        etc).  If no key is specified, this function will return a list of all
+        project info available.
 
-    def set_template_for_file(self, f, template):
+        :param key: Key cooresponding to information item to fetch.  If this is
+                    None, function will return a map of all info items in the
+                    project.
+        :type key: str
+        :return: The value associated with a key, if given, or a map of all info
+                 items in the project.
         """
-        Associates a template with a file.
-        """
-        pass
+        # Create db session
+        Session = sessionmaker(bind=self._db_engine)
+        session = Session()
 
-    def get_template_for_file(self, f, template):
-        """
-        Gets the associated template for a file.
-        """
-        pass
+        if key is None:
+            info = {}
+            for row in session.query(ProjectInfo):
+                info[row.key] = row.value
+            return info
+        else:
+            entry = session.query(ProjectInfo).filter_by(key=key).first()
+            if entry is not None:
+                return entry.value
+
+        return None
+
+    def _add_info(self, key, value):
+        # Create db session
+        Session = sessionmaker(bind=self._db_engine)
+        session = Session()
+
+        # Add info to table
+        info = ProjectInfo(key=key, value=value)
+        session.merge(info)
+        session.commit()
+
+    def _db_get_files(self):
+        # Create db session
+        Session = sessionmaker(bind=self._db_engine)
+        session = Session()
+
+        # Add info to table
+        return session.query(ProjectFile)
+
+    def _register_file(self, path, file_hash):
+        # Create db session
+        Session = sessionmaker(bind=self._db_engine)
+        session = Session()
+
+        # Add info to table
+        info = ProjectFile(path=path, sha256=file_hash)
+        session.merge(info)
+        session.commit()
+
+    def _update_file_hash(self, path, file_hash):
+        # Create db session
+        Session = sessionmaker(bind=self._db_engine)
+        session = Session()
+
+        entry = session.query(ProjectFile).filter_by(path=path).first()
+        if entry is None:
+            assert SpadeProjectException("Can't update hash, no file registered at \"%s\"." % path)
+        entry.sha256 = file_hash
+
+        session.commit()
+
+    def _db_init(self, path: str):
+        # Create engine
+        engine = create_engine(
+            "sqlite:///" + path,         # Create sqlite db and engine for sqlalchemy
+            echo=False)                  # TODO: This should probably be commented out at some point
+        Base.metadata.create_all(engine) # Adds all of our tables into the sqlite db
+        self.db_file = path
+        self._db_engine = engine
+
+        # Initialize database or load info
+        date = datetime.datetime.now()
+        if self.get_info("schema_version") is None:
+            self._add_info("schema_version", SCHEMA_VERSION)
+            self._add_info("creation_datetime", date)
+            self._add_info("update_datetime", date)
+        else:
+            self._db_validate()
+            self._db_update()
+
+    def _db_validate(self):
+        # Make sure project version string is compatible with this version of spade
+        schema_version = self.get_info("schema_version")
+        if schema_version != SCHEMA_VERSION:
+            raise SpadeProjectException("Project schema version \"%s\" is incompatible with this version of spade." % schema_version)
+
+        # Make sure all files tracked by his project exist and match their stored hashes
+        for entry in self._db_get_files():
+            # Make sure file exists
+            if not os.path.exists(entry.path):
+                raise SpadeProjectException("Could not find tracked file \"%s\"." % entry.path)
+
+            # Make sure file hash matches
+            if hash_file(entry.path) != entry.sha256:
+                raise SpadeProjectException("File \"%s\" has been modified since last open." % entry.path)
+
+    def _db_update(self):
+        if self.get_info("schema_version") is None:
+            raise SpadeProjectException("Can't update uninitialized database.")
+
+        date = datetime.datetime.now()
+        self._add_info("update_datetime", date)
+

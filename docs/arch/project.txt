@@ -1,4 +1,0 @@
-Projects represent a reverse engineering session.  They contain the file(s)
-associated with a target, a database for storing metadata and analysis info,
-and related information.  They also have the ability to save their state to
-a file for future interaction and sharing with others.
