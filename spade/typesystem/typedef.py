@@ -1,6 +1,6 @@
 class TypeDef:
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, names: list):
+        self.names = names
         self.size = 0 # This MUST be defined in type
 
     def to_string(self, byte_array: bytes) -> str:
