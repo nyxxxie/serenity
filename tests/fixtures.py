@@ -43,3 +43,4 @@ def project():
     project = Project(dbfile)
     yield project
     os.remove(dbfile)
+
