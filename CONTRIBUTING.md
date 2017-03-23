@@ -5,7 +5,7 @@ intended to help you figure out how and what to contribute to spade.
 
 ## Setting up environment
 In order to work on spade, you'll need to set up an environment that'll allow
-you to make and submit changes.  Please perform these first initial steps to
+you to make, test and submit changes.  Please perform these first initial steps:
   * Register a github account
   * Fork the main [spade repository][1]
   * Install Python 3.4 or above
