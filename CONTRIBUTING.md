@@ -89,10 +89,14 @@ excellent way to do so!
 
 ## Branching
 Spade uses the [gitflow][3] development model.  Branches other than develop and
-master are to take the form `<type>/<name>`.  Please use the `<name>` field to
-reference an issue number.  If there is no issue for what you want to contribute,
-you may use a descriptive name (EG: `feature/new_widget`).  Favor underscores
-over dashes for spaces.
+master are to take the form `<type>/<name>`.  Valid types include:
+  * `feature` - For use on branches that add new functionality or improvements
+    to spade
+  * `bug` - For use on branches that are intended to address a bug.
+Please use the `<name>` field to reference an issue number, especially for bugs.
+If you want to contribute a feature and there is no issue for it in the issue
+tracker, you may use a descriptive english name for `<name>` 
+(EG: `feature/new_widget`).  Favor underscores over dashes for spaces.
 
 ## Code style
 Code must adhere to [PEP8][4] with the following additions:
