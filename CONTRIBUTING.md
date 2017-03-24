@@ -50,6 +50,30 @@ that you may consider engaging in to help become familiar with spade:
 Spade also supports sphinx documentation generation, which you may find useful.
 To build documentation, simply execute `python setup.py build_sphinx`.
 
+## Feature requests
+If you have an idea for a feature you would like to see in spade or would like
+to implement, submit an issue.  Approved feature requests will be given the
+cooresponding label.  If no one is assigned and there are no [wip] pull
+requests for that issue, feel free to implement it.
+
+When developing features, prioritize ease of use and usefulness in your
+decisions.  For example, if you're adding a new api function, you should be
+able to imagine a use case for it that necessitates its addition.  This is
+especially true when such decisions complicate the api for new users.
+
+## Pull requests
+If you want to contribute code, it is advised you create a [wip] pull request
+so that others know that you are currently working on a specific feature.
+Make all your changes in a new branch.
+
+## Bug patching
+A good way to contribute and get familiar with spade's internals is to
+investigate and patch bugs.  Contribute bug patches just as you would
+contribute any other code, but please also include a unit test to test for the
+bug in question.  When a bug is submitted to the issue tracker, it will be
+rated and assigned if applicable.  Before you start your patch, ensure there
+are no [wip] pull requests opne for that bug and that no one is assigned to it.
+
 ## Unit tests
 Unit tests are a useful way to test code you write.  Not only does it save you
 the work of having to write a test client to test your features, but it also
@@ -116,30 +140,6 @@ Docstrings for classes should describe that class's purpose in the project.  A
 rule of thumb to go by with class docstrings is that a developer should be able
 to know exactly what the class is for and how it is meant to be used by reading
 the docstring by itself.
-
-## Pull requests
-If you want to contribute code, it is advised you create a [wip] pull request
-so that others know that you are currently working on a specific feature.
-Make all your changes in a new branch.
-
-## Bug patching
-A good way to contribute and get familiar with spade's internals is to
-investigate and patch bugs.  Contribute bug patches just as you would
-contribute any other code, but please also include a unit test to test for the
-bug in question.  When a bug is submitted to the issue tracker, it will be
-rated and assigned if applicable.  Before you start your patch, ensure there
-are no [wip] pull requests opne for that bug and that no one is assigned to it.
-
-## Feature requests
-If you have an idea for a feature you would like to see in spade or would like
-to implement, submit an issue.  Approved feature requests will be given the
-cooresponding label.  If no one is assigned and there are no [wip] pull
-requests for that issue, feel free to implement it.
-
-When developing features, prioritize ease of use and usefulness in your
-decisions.  For example, if you're adding a new api function, you should be
-able to imagine a use case for it that necessitates its addition.  This is
-especially true when such decisions complicate the api for new users.
 
 ## Bug reporting
 Please note that the issue tracker is *not* tech support.  Please only report
