@@ -62,9 +62,12 @@ able to imagine a use case for it that necessitates its addition.  This is
 especially true when such decisions complicate the api for new users.
 
 ## Pull requests
-If you want to contribute code, it is advised you create a [wip] pull request
-so that others know that you are currently working on a specific feature.
-Make all your changes in a new branch.
+If you want to contribute code, use pull requests.  Pull requests should be
+used to make others aware of your work on a code change or to ask for feedback
+on a change.  If your feature is in progress, please prefix your pull request
+with [WIP].  If you have an idea with no code or do not intend to work on the
+feature, use the issue tracker.  Make all your changes in a topic branch as
+opposed to devel or master.
 
 ## Bug patching
 A good way to contribute and get familiar with spade's internals is to
