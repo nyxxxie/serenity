@@ -64,7 +64,7 @@ excellent way to do so!
 Spade uses the [gitflow][3] development model.  Branches other than develop and
 master are to take the form `<type>/<name>`.  For example, a new feature branch
 that implements a widget should be named `feature/new_widget`.  Do not make
-changes in develop or master.  Please favor underscores for spaces over dashes.
+changes in develop or master.  Favor underscores for spaces over dashes.
 
 ## Code style
 Code must adhere to [PEP8][4] with the following additions:
@@ -77,6 +77,7 @@ Code must adhere to [PEP8][4] with the following additions:
       3. Private class methods (prefixed with _)
   * Refrain from using double underscore prefixes for methods and variables.
   * Please use [type hints][7] where applicable.
+  * Use spaces for indents.
 
 ## Documentation
 All methods and classes should have docstrings written for them.  As spade
