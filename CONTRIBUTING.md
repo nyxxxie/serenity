@@ -86,9 +86,10 @@ excellent way to do so!
 
 ## Branching
 Spade uses the [gitflow][3] development model.  Branches other than develop and
-master are to take the form `<type>/<name>`.  For example, a new feature branch
-that implements a widget should be named `feature/new_widget`.  Do not make
-changes in develop or master.  Favor underscores for spaces over dashes.
+master are to take the form `<type>/<name>`.  Please use the `<name>` field to
+reference an issue number.  If there is no issue for what you want to contribute,
+you may use a descriptive name (EG: `feature/new_widget`).  Favor underscores
+over dashes for spaces.
 
 ## Code style
 Code must adhere to [PEP8][4] with the following additions:
