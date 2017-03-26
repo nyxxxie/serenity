@@ -2,7 +2,7 @@
 import sys
 import traceback
 from PyQt5.QtWidgets import QApplication
-from qspade.mainwindow import SpadeMainWindow
+from client.mainwindow import SpadeMainWindow
 
 def rungui(args):
     try:
