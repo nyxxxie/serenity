@@ -9,7 +9,7 @@ setup(
     author='Nyxxie et al.',
     author_email='nyxxxxie@gmail.com',
     license='GNU GPL v3',
-    packages=['spade'],
+    packages=['spade', 'qspade'],
     install_requires=[
         'PyQt5',
         'pyyaml',
