@@ -1,4 +1,6 @@
-venv
+venv/
+build/
+dist/
 docs/.build
 spade.egg-info
 .cache
