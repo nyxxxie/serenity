@@ -47,9 +47,6 @@ that you may consider engaging in to help become familiar with spade:
   * Investigate/fix low complexity bugs
   * Implement approved feature requests
 
-Spade also supports sphinx documentation generation, which you may find useful.
-To build documentation, simply execute `python setup.py build_sphinx`.
-
 ## Feature requests
 If you have an idea for a feature you would like to see in spade or would like
 to implement, submit an issue.  Approved feature requests will be given the
@@ -117,6 +114,11 @@ All methods and classes should have docstrings written for them.  As spade
 currently uses [sphinx][8] for generating documentation, docstrings will be
 displayed as [reStructuredText][9].  Docstrings, therefore,  may make use it's
 markup to add emphasis, charts, code examples, etc to their docstrings.
+
+Documentation may be generated using the Makefile in the `docs` folder, or 
+alternately by using the command `python setup.py build_sphinx`.  Generated
+documentation will be located in `docs/.build/<type>/`, where `<type>` is the
+type of documentation that was generated (html, manpages, etc).
 
 ### Methods
 Docstrings for methods should describe that method's purpose, arguments, and 
