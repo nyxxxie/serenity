@@ -8,6 +8,10 @@ def test_creation():
 
 def test_default_types_added(typemanager):
     reported = typemanager.types()
-    expected = [x.name for x in default_types]
+
+    expected = []
+    for t in default_types:
+        expected.extend(t.names)
+
     intersect = set(reported).intersection(expected)
-    assert len(intersect) == len(default_types)
+    assert len(intersect) == len(reported)

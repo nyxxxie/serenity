@@ -1,7 +1,7 @@
 from .fixtures import int32
 
 def test_init(int32):
-    assert int32.name == "int32"
+    assert "int32" in int32.names
     assert int32.size == 4
 
 def test_to_string_zero(int32):

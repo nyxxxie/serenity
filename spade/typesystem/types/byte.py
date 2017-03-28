@@ -3,7 +3,7 @@ from spade.typesystem.types import default_types
 
 class Byte(TypeDef):
     def __init__(self):
-        super().__init__("byte")
+        super().__init__(["byte"])
         self.size = 1
 
     def to_string(self, byte_array: bytes) -> str:
