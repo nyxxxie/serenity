@@ -50,24 +50,19 @@ def validate_file(struct):
     # Validate fields
     validate_field(struct.fields[0], "header_t", "header")
 
-def test_parser_validtemplate1():
+def test_parse():
     # Parse template
     parser = TemplateParser()
     assert parser is not None
-    ast = parser.parse_file("tests/template/validtemplate1.stf")
+    ast = parser.parse_file("tests/template/templatewithstructs.stf")
     assert ast is not None
 
     # Do we have all our structs?
     assert ast.structs is not None
     assert len(ast.structs) == 3
-
-    # Make sure all expected structs exist and are good in ast
-    expected_structs = ["header_t", "blob_t", "FILE"]
-    for struct in ast.structs:
-        for s in expected_structs:
-            if struct.name == s:
-                expected_structs.remove(s)
-    assert len(expected_structs) == 0
+    assert "FILE" in [x.name for x in ast.structs]
+    assert "header_t" in [x.name for x in ast.structs]
+    assert "blob_t" in [x.name for x in ast.structs]
 
     # Validate structs
     validate_header(ast.struct("header_t"))
