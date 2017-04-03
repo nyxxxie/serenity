@@ -1,6 +1,6 @@
 import pytest
 from spade.typesystem.manager import TypeManager
-from spade.typesystem.types.int32 import Int32
+from spade.typesystem.types.int32 import Int32, Char
 
 @pytest.fixture()
 def typemanager():
@@ -15,3 +15,9 @@ def int32():
     """
     """
     yield Int32()
+
+@pytest.fixture()
+def char():
+    """
+    """
+    yield Char()
