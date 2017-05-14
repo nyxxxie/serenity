@@ -64,7 +64,7 @@ used to make others aware of your work on a code change or to ask for feedback
 on a change.  If your feature is in progress, please prefix your pull request
 with [WIP].  If you have an idea with no code or do not intend to work on the
 feature, use the issue tracker.  Make all your changes in a topic branch as
-opposed to devel or master.
+opposed to master.
 
 ## Bug patching
 A good way to contribute and get familiar with spade's internals is to
@@ -85,8 +85,8 @@ working on spade, creating new unit tests to increase test coverage is an
 excellent way to do so!
 
 ## Branching
-Spade uses the [gitflow][3] development model.  Branches other than develop and
-master are to take the form `<type>/<name>`.  Valid types include:
+Please implement all features in feature branches named with the template
+`<type>/<name>`.  Valid types include:
   * `feature` - For use on branches that add new functionality or improvements
     to spade
   * `bug` - For use on branches that are intended to address a bug.
