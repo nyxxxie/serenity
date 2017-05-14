@@ -1,26 +1,35 @@
-from spade.typesystem.typedef import TypeDef
-from spade.typesystem.types import default_types
+from spade.typesystem import typemanager
+from spade.typesystem.typedef import TypeDef, InvalidTypeException, NullDataException
 import struct
 
 class Byte(TypeDef):
-    def __init__(self):
-        super().__init__(["byte"])
-        self.size = 1
-
-    def to_string(self, byte_array: bytes) -> str:
-        if byte_array is None or len(byte_array) != 1:
+    def to_string(self, data) -> str:
+        if data is None or len(data) == 0:
             return None
 
-        ret = ""
-        for byte in byte_array:
-            ret += "%02x" % (byte)
+        self._size = 1
 
-        return ret
+        if isinstance(data, bytes):
+            ret = ""
+            for byte in data:
+                ret += "%02x" % (byte)
+            return ret.upper()
+        elif isinstance(data, str):
+            return data.upper()
+        else:
+            raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
 
-    def from_string(self, string: str) -> bytes:
-        if string is None or len(string) != 2: # TODO: support 0x and h prefixes
+    def to_bytes(self, data) -> bytes:
+        if data is None or len(data) == 0:
             return None
 
-        return bytes.fromhex(string);
+        self._size = 1
 
-default_types.append(Byte())
+        if isinstance(data, bytes):
+            return data
+        elif isinstance(data, str):
+            return bytes.fromhex(data);
+        else:
+            raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
+
+typemanager.add_type(Byte, ["byte"])

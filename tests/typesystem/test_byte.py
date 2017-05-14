@@ -13,8 +13,8 @@ def test_init():
 def test_none():
     byte = Byte(None)
     assert byte.size() == 0
-    assert byte.to_string(None) is None
-    assert byte.from_string(None) is None
+    assert byte.string() is None
+    assert byte.bytes() is None
 
 def test_empty_bytes():
     byte = Byte(bytes([]))
@@ -34,13 +34,13 @@ def test_empty_string():
 # ---------------------------
 def test_convert_min_string():
     byte = Byte("00")
-    assert byte.size() == 0
+    assert byte.size() == 1
     assert byte.string() == "00"
     assert byte.bytes() == bytes([00])
 
 def test_convert_min_bytes():
     byte = Byte(bytes([00]))
-    assert byte.size() == 0
+    assert byte.size() == 1
     assert byte.string() == "00"
     assert byte.bytes() == bytes([00])
 
