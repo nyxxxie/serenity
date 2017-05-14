@@ -1,5 +1,4 @@
 from spade.typesystem import typemanager
-from tests.utils import try_convert_inverse
 from spade.typesystem.types.byte import Byte
 
 # ---------------------------
