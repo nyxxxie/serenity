@@ -1,2 +1,9 @@
-env
-docs/_build
+venv/
+build/
+dist/
+docs/.build
+spade.egg-info
+.cache
+.eggs/
+*__pycache__
+tests/testdb.sdb
