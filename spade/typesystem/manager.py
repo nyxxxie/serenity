@@ -7,11 +7,11 @@ class TypeManager:
     def __init__(self):
         self._types = []
 
-    def add_type(self, typedef, names):
+    def add_type(self, typedef):
         """
         Adds a type definition identified by a given name.
         """
-        return self._types.append(TypeEntry(typedef, names))
+        return self._types.append(TypeEntry(typedef, typedef.__typenames__))
 
     def remove_type(self, name):
         """
@@ -31,7 +31,7 @@ class TypeManager:
         for t in self._types:
             for tname in t.names:
                 if tname == name:
-                    return typedef
+                    return t
 
         return None
 

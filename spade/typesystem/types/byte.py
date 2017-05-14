@@ -3,6 +3,8 @@ from spade.typesystem.typedef import TypeDef, InvalidTypeException, NullDataExce
 import struct
 
 class Byte(TypeDef):
+    __typenames__ = ["byte"]
+
     def to_string(self, data) -> str:
         if data is None or len(data) == 0:
             return None
@@ -32,4 +34,4 @@ class Byte(TypeDef):
         else:
             raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
 
-typemanager.add_type(Byte, ["byte"])
+typemanager.add_type(Byte)

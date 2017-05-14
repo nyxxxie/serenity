@@ -1,3 +1,4 @@
+from spade.typesystem import typemanager
 from tests.utils import try_convert_inverse
 from spade.typesystem.types.byte import Byte
 
@@ -171,3 +172,11 @@ def test_convert_letter_bytes():
     assert byte.size() == 1
     assert byte.string() == "6A"
     assert byte.bytes() == bytes([0x6A])
+
+
+# ---------------------------
+# TYPESYSTEM INTEGRATION
+# ---------------------------
+def test_typemanager_byte_added_all_names():
+    for name in Byte.__typenames__:
+        assert typemanager.get_type(name) is not None
