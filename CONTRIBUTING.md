@@ -74,15 +74,22 @@ bug in question.  When a bug is submitted to the issue tracker, it will be
 rated and assigned if applicable.  Before you start your patch, ensure there
 are no [wip] pull requests opne for that bug and that no one is assigned to it.
 
-## Unit tests
-Unit tests are a useful way to test code you write.  Not only does it save you
-the work of having to write a test client to test your features, but it also
-allows future developers to test your features when they may have made changes.
-Spade requires that unit tests be submitted with code patches when applicable,
-both because of the aforementioned reasons and because it makes it easier to
-review pull requests.  If you are looking for a low-complexity way to start
-working on spade, creating new unit tests to increase test coverage is an
-excellent way to do so!
+## Testing
+Spade requires that all major code additions or modifications be accompanied by
+tests.  Tests make life easier for all parties because it helps us ensure your
+code is working, helps future developers ensure their code doesn't break
+anything, and gives new developers pseudo-documentation to reference when trying
+to understand your api.
+
+We reccomend adopting a test-driven development workflow so that your tests keep 
+up with the code you write, and serve to actually help you develop rather than 
+provide a chore when your feature is ready.  When designing tests, please try to
+cover each code path in each function (unit tests) as well as test against weird 
+inputs.  Also write tests to make sure your components interact properly with
+any other associated components (integration tests).
+
+If you are looking for a low-complexity way to start working on spade, creating
+new tests for existing code is an excellent and useful way to do so!
 
 ## Branching
 Please implement all features in feature branches named with the template
