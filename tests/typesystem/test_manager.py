@@ -1,17 +1,18 @@
-#from spade.typesystem.manager import TypeManager
-#from spade.typesystem.types import default_types
-#from .fixtures import typemanager
-#
-#def test_creation():
-#    mngr = TypeManager()
-#    assert mngr is not None
-#
-#def test_default_types_added(typemanager):
-#    reported = typemanager.types()
-#
-#    expected = []
-#    for t in default_types:
-#        expected.extend(t.names)
-#
-#    intersect = set(reported).intersection(expected)
-#    assert len(intersect) == len(reported)
+from spade.typesystem.manager import TypeManager
+from spade.typesystem.types import type_amt
+from spade.typesystem import typemanager
+
+# ---------------------------
+# TypeManager TESTS
+# ---------------------------
+def test_init():
+    mngr = TypeManager()
+    assert len(mngr._types) == 0
+
+
+# ---------------------------
+# typemanager TESTS
+# ---------------------------
+def test_typemanager_types_added():
+    assert typemanager is not None
+    assert len(typemanager.types()) == type_amt
