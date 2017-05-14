@@ -15,4 +15,4 @@ def test_init():
 # ---------------------------
 def test_typemanager_types_added():
     assert typemanager is not None
-    assert len(typemanager.types()) == type_amt
+    assert len(typemanager._types) == type_amt
