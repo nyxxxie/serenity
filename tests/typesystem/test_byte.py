@@ -30,7 +30,7 @@ def test_empty_string():
 
 
 # ---------------------------
-# MIN BYTES
+# CONVERT MNI
 # ---------------------------
 def test_convert_min_string():
     byte = Byte("00")
@@ -46,7 +46,7 @@ def test_convert_min_bytes():
 
 
 # ---------------------------
-# MAX BYTES
+# CONVERT MAX
 # ---------------------------
 def test_convert_max_string_upper():
     byte = Byte("FF")
@@ -80,7 +80,7 @@ def test_convert_max_bytes():
 
 
 # ---------------------------
-# PURE NUMERIC REPRESENTATION
+# CONVERT ALL NUMBERS
 # ---------------------------
 def test_convert_pure_numeric_string():
     byte = Byte(bytes([0x43]))
@@ -96,7 +96,7 @@ def test_convert_pure_numeric_bytes():
 
 
 # ---------------------------
-# ALL LETTERS
+# CONVERT ALL LETTERS
 # ---------------------------
 def test_convert_letter_string_upper():
     byte = Byte("CD")
@@ -130,7 +130,7 @@ def test_convert_letter_bytes():
 
 
 # ---------------------------
-# LETTER-NUMBER
+# CONVERT LETTER-NUMBER
 # ---------------------------
 def test_convert_letter_number_upper():
     byte = Byte("C8")
@@ -152,7 +152,7 @@ def test_convert_letter_bytes():
 
 
 # ---------------------------
-# NUMBER-LETTER
+# CONVERT NUMBER-LETTER
 # ---------------------------
 def test_convert_letter_number_upper():
     byte = Byte("6A")
