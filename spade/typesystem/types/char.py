@@ -1,22 +1,33 @@
-#import binascii
-#from spade.typesystem.typedef import TypeDef
-#from spade.typesystem.types import default_types
-#
-#class Char(TypeDef):
-#    def __init__(self):
-#        super().__init__(["char"])
-#        self.size = 1
-#
-#    def to_string(self, byte_array: bytes) -> str:
-#        if string is None:
-#            return None
-#
-#        return str(binascii.unhexlify(byte_array))
-#
-#    def from_string(self, string: str) -> bytes:
-#        if string is None:
-#            return None
-#
-#        return binascii.hexlify(byte_array)
-#
-#default_types.append(Char())
+from spade.typesystem import typemanager
+from spade.typesystem.typedef import TypeDef, InvalidTypeException, NullDataException
+
+class Char(TypeDef):
+    __typenames__ = ["char", "c"]
+
+    def to_string(self, data) -> str:
+        if data is None or len(data) == 0:
+            return None
+
+        self._size = 4
+
+        if isinstance(data, bytes):
+            return None
+        elif isinstance(data, str):
+            return None
+        else:
+            raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
+
+    def to_bytes(self, data) -> bytes:
+        if data is None or len(data) == 0:
+            return None
+
+        self._size = 4
+
+        if isinstance(data, bytes):
+            return None
+        elif isinstance(data, str):
+            return None
+        else:
+            raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
+
+typemanager.add_type(Char)
