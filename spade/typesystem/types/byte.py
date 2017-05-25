@@ -1,9 +1,9 @@
+import struct
 from spade.typesystem import typemanager
 from spade.typesystem.typedef import TypeDef, InvalidTypeException, NullDataException
-import struct
 
 class Byte(TypeDef):
-    __typenames__ = ["byte"]
+    __typenames__ = ["byte", "b"]
 
     def to_string(self, data) -> str:
         if data is None or len(data) == 0:
