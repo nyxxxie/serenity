@@ -49,13 +49,13 @@ def test_convert_zero_string():
     int32 = Int32("0")
     assert int32.size() == 4
     assert int32.string() == "0"
-    assert int32.bytes() == bytes([0])
+    assert int32.bytes() == bytes([0x00, 0x00, 0x00, 0x00])
 
 def test_convert_zero_bytes():
     int32 = Int32(bytes([0x00, 0x00, 0x00, 0x00]))
     assert int32.size() == 4
     assert int32.string() == "0"
-    assert int32.bytes() == bytes([0])
+    assert int32.bytes() == bytes([0x00, 0x00, 0x00, 0x00])
 
 
 # ---------------------------
