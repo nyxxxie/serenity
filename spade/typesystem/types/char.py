@@ -1,3 +1,4 @@
+import struct
 from spade.typesystem import typemanager
 from spade.typesystem.typedef import TypeDef, InvalidTypeException, NullDataException
 
@@ -8,12 +9,12 @@ class Char(TypeDef):
         if data is None or len(data) == 0:
             return None
 
-        self._size = 4
+        self._size = 1
 
         if isinstance(data, bytes):
-            return None
+            return data.decode("ascii").upper()
         elif isinstance(data, str):
-            return None
+            return data.upper()
         else:
             raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
 
@@ -21,13 +22,19 @@ class Char(TypeDef):
         if data is None or len(data) == 0:
             return None
 
-        self._size = 4
+        self._size = 1
 
         if isinstance(data, bytes):
-            return None
+            return data
         elif isinstance(data, str):
-            return None
+            return data.upper().encode("ascii")
         else:
             raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
+
+    def unprintable(self):
+        return False
+
+    def printable(self):
+        return not unprintable()
 
 typemanager.add_type(Char)
