@@ -31,8 +31,9 @@ class Char(TypeDef):
         else:
             raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
 
+    @staticmethod # TODO: make this static, apply towards single character
     def unprintable(self):
-        return False
+        return False 
 
     def printable(self):
         return not unprintable()
