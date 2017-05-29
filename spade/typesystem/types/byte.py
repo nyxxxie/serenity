@@ -5,11 +5,12 @@ from spade.typesystem.typedef import TypeDef, InvalidTypeException, NullDataExce
 class Byte(TypeDef):
     __typenames__ = ["byte", "b"]
 
-    def to_string(self, data) -> str:
-        if data is None or len(data) == 0:
-            return None
+    def __init__(self, data=None):
+        super().__init__(data, 1)
 
-        self._size = 1
+    def to_string(self, data) -> str:
+        if not data:
+            return None
 
         if isinstance(data, bytes):
             ret = ""
@@ -22,10 +23,8 @@ class Byte(TypeDef):
             raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
 
     def to_bytes(self, data) -> bytes:
-        if data is None or len(data) == 0:
+        if not data:
             return None
-
-        self._size = 1
 
         if isinstance(data, bytes):
             return data
