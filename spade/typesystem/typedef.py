@@ -2,10 +2,10 @@ class InvalidTypeException(Exception): pass
 class NullDataException(Exception): pass
 
 class TypeDef:
-    def __init__(self, data=None):
+    def __init__(self, data=None, size=0):
         self._string = None
         self._bytes = None
-        self._size = 0
+        self._size = size
         self.convert(data)
 
     def convert(self, data):
