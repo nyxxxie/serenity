@@ -6,28 +6,28 @@ from spade.typesystem.types.char import Char
 # ---------------------------
 def test_init():
     char = Char()
-    assert char.size() == 0
+    assert char.size() == 1
     assert char.string() is None
     assert char.bytes() is None
     assert char.unprintable()
 
 def test_none():
     char = Char(None)
-    assert char.size() == 0
+    assert char.size() == 1
     assert char.string() is None
     assert char.bytes() is None
     assert char.unprintable()
 
 def test_empty_chars():
     char = Char(bytes([]))
-    assert char.size() == 0
+    assert char.size() == 1
     assert char.string() is None
     assert char.bytes() is None
     assert char.unprintable()
 
 def test_empty_string():
     char = Char("")
-    assert char.size() == 0
+    assert char.size() == 1
     assert char.string() is None
     assert char.bytes() is None
     assert char.unprintable()

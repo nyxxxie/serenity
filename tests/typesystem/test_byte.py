@@ -6,25 +6,25 @@ from spade.typesystem.types.byte import Byte
 # ---------------------------
 def test_init():
     byte = Byte()
-    assert byte.size() == 0
+    assert byte.size() == 1
     assert byte.string() is None
     assert byte.bytes() is None
 
 def test_none():
     byte = Byte(None)
-    assert byte.size() == 0
+    assert byte.size() == 1
     assert byte.string() is None
     assert byte.bytes() is None
 
 def test_empty_bytes():
     byte = Byte(bytes([]))
-    assert byte.size() == 0
+    assert byte.size() == 1
     assert byte.string() is None
     assert byte.bytes() is None
 
 def test_empty_string():
     byte = Byte("")
-    assert byte.size() == 0
+    assert byte.size() == 1
     assert byte.string() is None
     assert byte.bytes() is None
 
