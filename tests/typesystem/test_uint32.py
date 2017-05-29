@@ -7,39 +7,39 @@ from spade.typesystem.types.uint32 import UInt32
 # ---------------------------
 def test_init():
     uint32 = UInt32()
-    assert uint32.size() == 0
+    assert uint32.size() == 4
     assert uint32.string() is None
     assert uint32.bytes() is None
 
 def test_none():
     uint32 = UInt32()
-    assert uint32.size() == 0
+    assert uint32.size() == 4
     assert uint32.string() is None
     assert uint32.bytes() is None
 
 def test_empty_bytes():
     uint32 = UInt32(bytes([]))
-    assert uint32.size() == 0
+    assert uint32.size() == 4
     assert uint32.string() is None
     assert uint32.bytes() is None
 
 def test_empty_string():
     uint32 = UInt32("")
-    assert uint32.size() == 0
+    assert uint32.size() == 4
     assert uint32.string() is None
     assert uint32.bytes() is None
 
 def test_too_few_bytes():
     uint32 = UInt32(bytes([0x13, 0x37]))
-    assert uint32.size() == 0
+    assert uint32.size() == 4
     assert uint32.string() is None
     assert uint32.bytes() is None
 
 def test_too_many_bytes():
     uint32 = UInt32(bytes([0x00, 0x00, 0x00, 0x01, 0x00]))
     assert uint32.size() == 4
-    assert uint32.string() == "1"
-    assert uint32.bytes() == bytes([0x00, 0x00, 0x00, 0x01])
+    assert uint32.string() is None
+    assert uint32.bytes() is None
 
 
 # ---------------------------
@@ -49,13 +49,13 @@ def test_convert_zero_string():
     uint32 = UInt32("0")
     assert uint32.size() == 4
     assert uint32.string() == "0"
-    assert uint32.bytes() == bytes([0])
+    assert uint32.bytes() == bytes([0x00, 0x00, 0x00, 0x00])
 
 def test_convert_zero_bytes():
     uint32 = UInt32(bytes([0x00, 0x00, 0x00, 0x00]))
     assert uint32.size() == 4
     assert uint32.string() == "0"
-    assert uint32.bytes() == bytes([0])
+    assert uint32.bytes() == bytes([0x00, 0x00, 0x00, 0x00])
 
 
 # ---------------------------
