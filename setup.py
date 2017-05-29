@@ -16,6 +16,7 @@ setup(
     },
     install_requires=[
         'PyQt5',
+        'pylint',
         'pyyaml',
         'sqlalchemy',
         'Sphinx',
