@@ -5,11 +5,12 @@ from spade.typesystem.typedef import TypeDef, InvalidTypeException, NullDataExce
 class Char(TypeDef):
     __typenames__ = ["char", "c"]
 
-    def to_string(self, data) -> str:
-        if data is None or len(data) == 0:
-            return None
+    def __init__(self, data=None):
+        super().__init__(data, 1)
 
-        self._size = 1
+    def to_string(self, data) -> str:
+        if not data:
+            return None
 
         if isinstance(data, bytes):
             return data.decode("ascii").upper()
@@ -19,10 +20,8 @@ class Char(TypeDef):
             raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
 
     def to_bytes(self, data) -> bytes:
-        if data is None or len(data) == 0:
+        if not data:
             return None
-
-        self._size = 1
 
         if isinstance(data, bytes):
             return data
@@ -31,11 +30,17 @@ class Char(TypeDef):
         else:
             raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
 
-    @staticmethod # TODO: make this static, apply towards single character
     def unprintable(self):
-        return False 
+        return not self.printable()
 
     def printable(self):
-        return not unprintable()
+        if self.size() == 0 or not self.bytes():
+            return False
+
+        for char in self.bytes():
+            if (0x00 <= char and char <= 0x1F) or char == 0x7F:
+                return False
+
+        return True
 
 typemanager.add_type(Char)
