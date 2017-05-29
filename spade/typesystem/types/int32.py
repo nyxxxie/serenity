@@ -1,32 +1,44 @@
+import struct
 from spade.typesystem import typemanager
 from spade.typesystem.typedef import TypeDef, InvalidTypeException, NullDataException
 
 class Int32(TypeDef):
     __typenames__ = ["int32", "int", "i32", "i32le"]
 
-    def to_string(self, data) -> str:
-        if data is None or len(data) == 0:
-            return None
+    def __init__(self, data=None):
+        super().__init__(data, 4)
 
-        self._size = 4
+    def to_string(self, data) -> str:
+        if not data:
+            return None
 
         if isinstance(data, bytes):
-            return None
+            if len(data) != 4:
+                return None
+            try:
+                b = struct.unpack('>i', data)
+                if b:
+                    return str(b[0])
+            except struct.error as e:
+                #raise InvalidTypeException("Data input size {} != 4 bytes.".format(len(data)))
+                return None
+            raise InvalidTypeException("output of struct.unpack was None.")
         elif isinstance(data, str):
-            return None
+            return data
         else:
             raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
 
     def to_bytes(self, data) -> bytes:
-        if data is None or len(data) == 0:
+        if not data:
             return None
-
-        self._size = 4
 
         if isinstance(data, bytes):
-            return None
+            if len(data) == 4:
+                return data
+            else:
+                return None
         elif isinstance(data, str):
-            return bytes.fromhex(data);
+            return struct.pack(">i", int(data))
         else:
             raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
 
