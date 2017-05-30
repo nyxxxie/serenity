@@ -7,3 +7,4 @@ spade.egg-info
 .eggs/
 *__pycache__
 tests/testdb.sdb
+.coverage
