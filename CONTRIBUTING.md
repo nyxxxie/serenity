@@ -90,6 +90,11 @@ decisions.  For example, if you're adding a new api function, you should be
 able to imagine a use case for it that necessitates its addition.  This is
 especially true when such decisions complicate the api for new users.
 
+When submitting a feature, please ensure all tests pass and pylint doesn't
+complain about anything.  You'll have to fix those things anyways when they
+don't pass for your reviewer anyways, so may as well do it sooner rather than
+later!
+
 ## Pull requests
 If you want to contribute code, use pull requests.  Pull requests should be
 used to make others aware of your work on a code change or to ask for feedback
