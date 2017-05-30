@@ -42,7 +42,7 @@ class Project:
 
         :return: sqlalchemy engine currently in use.
         """
-        return self._engine
+        return self._db_engine
 
     def files(self):
         """
@@ -120,7 +120,8 @@ class Project:
 
         entry = session.query(ProjectFile).filter_by(path=path).first()
         if entry is None:
-            assert SpadeProjectException("Can't update hash, no file registered at \"%s\"." % path)
+            assert SpadeProjectException(("Can't update hash, no file "
+                    "registered at \"{}\".").format(path))
         entry.sha256 = file_hash
 
         session.commit()
@@ -128,9 +129,9 @@ class Project:
     def _db_init(self, path: str):
         # Create engine
         engine = create_engine(
-            "sqlite:///" + path,         # Create sqlite db and engine for sqlalchemy
-            echo=False)                  # TODO: This should probably be commented out at some point
-        Base.metadata.create_all(engine) # Adds all of our tables into the sqlite db
+            "sqlite:///" + path, # Create sqlite db and engine for sqlalchemy
+            echo=False) # TODO: This should probably be commented out at some point
+        Base.metadata.create_all(engine) # Adds all of our tables into the db
         self.db_file = path
         self._db_engine = engine
 
@@ -148,17 +149,22 @@ class Project:
         # Make sure project version string is compatible with this version of spade
         schema_version = self.get_info("schema_version")
         if schema_version != SCHEMA_VERSION:
-            raise SpadeProjectException("Project schema version \"%s\" is incompatible with this version of spade." % schema_version)
+            raise SpadeProjectException(("Project schema version \"{}\" is "
+                    "incompatible with this version of "
+                    "spade.").format(schema_version))
 
         # Make sure all files tracked by his project exist and match their stored hashes
         for entry in self._db_get_files():
             # Make sure file exists
             if not os.path.exists(entry.path):
-                raise SpadeProjectException("Could not find tracked file \"%s\"." % entry.path)
+                raise SpadeProjectException("Could not find tracked file "
+                                            "\"{}\".".format(entry.path))
 
             # Make sure file hash matches
             if hash_file(entry.path) != entry.sha256:
-                raise SpadeProjectException("File \"%s\" has been modified since last open." % entry.path)
+                raise SpadeProjectException("File \"{}\" has been modified "
+                                            "since last "
+                                            "open.".format(entry.path))
 
     def _db_update(self):
         if self.get_info("schema_version") is None:
@@ -166,4 +172,3 @@ class Project:
 
         date = datetime.datetime.now()
         self._add_info("update_datetime", date)
-
