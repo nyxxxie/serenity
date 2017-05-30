@@ -40,10 +40,42 @@ Please remember to activate your virtual environment when you want to run
 the development version of spade.
 
 ## Getting started
+Spade attempts to make use of the convention and layouts popular in other
+projects.  The hardest part about getting started will likely be getting familar
+enough with the codebase to understand how you might contribute an improvement
+or idea you have.  We reccomend the following to understand what's going on:
+  * Check out [this document] for a description of how the repo is organized.
+    Use this to hone in on areas that might be relevant to your proposed
+    contribution and to understand where it might belong.
+  * When trying to learn about a method or class, how you learn it depends on the
+    reason why you need to learn about it:
+      1. *What is it for?* All documented components should explain their
+         purpose, so check the generated sphinx docs or the docstrings
+         associated with that component.
+      2. *How do I use it?* First check out the docs for that method, and then
+         check out the relevant tests associated with it and its usages in the
+         codebase.
+      3. *How does it work?* Read the code, which should be sufficiently
+         commented that you can understand what it's doing.
+    As you contribute yourself, keep these assumptions of how a component will
+    be documented in mind so that other developers can expect the same
+    experience when reading your code.  Code that isn't sufficiently documented
+    *is a valid issue* and may be raised in the issue tracker.
+
+### Task ideas
+If you want to contribute but don't know where to start, here are some tasks
+that you can do right now without needing to be too creative:
+  * Solve or lend your expertise to an issue in the issue tracker.
+  * Review open pull requests (including those in progess).
+  * Implement approved features in the issue tracker (if they don't already
+    have a pull request open)
+  * Create new tests for cases we don't cover.  You can easily assess this using
+    pytest-cov.  Check out Testing section for more info.
+
 The biggest challenge to getting started is getting to know the codebase well
 enough to feel comfortable contributing.  Here are some low-complexity tasks
 that you may consider engaging in to help become familiar with spade:
-  * Create new unit tests
+  * Create new tests
   * Investigate/fix low complexity bugs
   * Implement approved feature requests
 
@@ -81,6 +113,12 @@ code is working, helps future developers ensure their code doesn't break
 anything, and gives new developers pseudo-documentation to reference when trying
 to understand your api.
 
+When writing tests or determining how to test your code, it's suggested that you
+start by testing expected common invocations and edge cases that your method
+might face.  You should then fill in the gaps using coverage informtation to
+determine what lines of code aren't being exercised.  Spade uses pytest-cov for
+generating coverage info, check out the docs on how to use it [here][10].
+
 We reccomend adopting a test-driven development workflow so that your tests keep 
 up with the code you write, and serve to actually help you develop rather than 
 provide a chore when your feature is ready.  When designing tests, please try to
@@ -104,17 +142,69 @@ tracker, you may use a descriptive english name for `<name>`
 (EG: `feature/new_widget`).  Favor underscores over dashes for spaces.
 
 ## Code style
-Code must adhere to [PEP8][4] with the following additions:
+Code must adhere to [PEP8][4] with the following additions/exceptions:
+  * Use `import`s for packages and modules only.  This makes namespace
+    management simpler, as the source of each identifier is indicated in a
+    consistent way (e.g. `blah.Thing` says that `Thing` is defined in `blah`).
   * Line length is limited to 79 chars, however this restriction may be lifted
     ignored if it would result in ugly code.  For example, if you add a comment
     to a line that increases that line's length to 100, that is acceptable.
+    The pylint config bundled with this repo defaults to 80, so if you go over
+    and trigger a warning please make sure there's a good reason for it.
   * Class methods must be declared in the following order:
       1. Special class methods (`__init__`, `__str__`, etc)
       2. Public class methods
       3. Private class methods (prefixed with _)
   * Refrain from using double underscore prefixes for methods and variables.
-  * Please use [type hints][7] where applicable.
-  * Use spaces for indents.
+  * Please use [type hints][7] whenever you expect an argument to be of a
+    specific type.
+  * Please comment anything that wouldn't be immediately apparant to the average
+    python programmer who has little-to-no experience with this codebase.  This
+    is mostly left to your best judgement, but please be considerate and note
+    that it's far better to have too many comments than barely any comments.
+  * Do not use periods at the end of a comment unless your comment consists of
+    multiple sentences or is long.  This is both because most comments aren't
+    complete sentences and because the period at the end looks bad when the
+    comment is smaller.  This is more of a best judgement kind of thing, so do
+    what you feel is right.
+  * It is preferred that all "blocks" of code that perform a distinct task
+    should have comment inserted before them explaining their purpose.  This
+    makes it easier to read code quickly and understand what the author
+    intended for it to do.  It also readability, since it's easy to deliniate
+    what blocks perform what specific functionality.
+  * Prefer `format` to `%`.
+  * Avoid huge methods.  Split out functionality into private or helper methods
+    if a particular block in a function is performing a large task, even if it's
+    only used in one specific area.
+  * Use exceptions only in cases where a method failing is a potentially fatal
+    action, where fatal is defined as the program entering an invalid state.
+    The program crashing is FAR preferable to it functioning incorrectly and
+    creating difficult to diagnose bugs.
+  * NEVER throw an Exception, subclass it or use an existing subclassed
+    exception relevant to your error.
+  * Use spaces for indents.  Tabs are great because they are one byte and can
+    be set to appear to be any number of spaces you prefer, but that same
+    flexibility breaks style when people use spaces to align arguments and
+    conditionals.  This mixing isn't even allowed in Python3.
+  * If you need to wrap a function or conditional that goes over the 80 char
+    limit, please adhere to the following style.  Notice:
+      1. All wrappe lines are double indented.  This is to distinquish them
+         from the next line.
+      2. No words are cut off in the middle and continued on the next line.
+         This is to increase readability.  Be sure to und your wrapped string
+         line with a space!
+      3. If it makes sense, you may start typing arguments on the next line.
+         This is acceptable if proportionally the size of arguments don't match
+         up or if a function invocation is exceptionally long and there is
+         little room for the first argument.  Avoid the latter if there are
+         only a few arguments, however.
+
+```python
+var = HugeFunctionCall(("This is a massive string that will wrap.  It "
+        "displays the value of some variable to via format, so notice how we "
+        "enclose it in parens!  Here's that value: {}.").format(value))
+    #do stuff
+```
 
 ## Documentation
 All methods and classes should have docstrings written for them.  As spade
@@ -166,12 +256,13 @@ to give us information necessary to diagnose and fix your bug.  If you have
 found a potential bug related to security, please email `nyxxxxie at gmail`
 directly.  Nyxxie's public key can be found on [keybase][6].
 
-[1]: https://github.com/nyxxxie/spade
-[2]: https://docs.python-guide.org/en/latest/dev/virtualenvs/
-[3]: http://nvie.com/posts/a-successful-git-branching-model/
-[4]: https://www.python.org/dev/peps/pep-0008/#code-lay-out
-[5]: BUG_TEMPLATE.txt
-[6]: https://keybase.io/nyxxie/
-[7]: https://www.python.org/dev/peps/pep-0484/
-[8]: http://www.sphinx-doc.org
-[9]: http://www.sphinx-doc.org/en/stable/rest.html
+[1]:  https://github.com/nyxxxie/spade
+[2]:  https://docs.python-guide.org/en/latest/dev/virtualenvs/
+[3]:  http://nvie.com/posts/a-successful-git-branching-model/
+[4]:  https://www.python.org/dev/peps/pep-0008/#code-lay-out
+[5]:  BUG_TEMPLATE.txt
+[6]:  https://keybase.io/nyxxie/
+[7]:  https://www.python.org/dev/peps/pep-0484/
+[8]:  http://www.sphinx-doc.org
+[9]:  http://www.sphinx-doc.org/en/stable/rest.html
+[10]: https://pypi.python.org/pypi/pytest-cov#usage
