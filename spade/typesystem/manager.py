@@ -15,7 +15,7 @@ class TypeManager:
         for t in self._types:
             for tname in t.__typenames__:
                 if tname == name:
-                    return self._types.remove(typedef)
+                    return self._types.remove(tname)
 
         return None
 
