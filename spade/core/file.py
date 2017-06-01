@@ -1,7 +1,6 @@
-import os
 import hashlib
 
-class SpadeFileException(Exception): pass
+class SpaceFileException(Exception): pass
 
 class filemode:
     read = "rb"
@@ -27,7 +26,7 @@ class sfile:
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, tb):
+    def __exit__(self, _type, value, tb):
         self.close()
 
     def __repr__(self):
@@ -82,7 +81,6 @@ class sfile:
         self._file.close()
         self._closed = True
 
-
     def insert(self, data: bytes) -> int:
         """
         **NOT IMPLEMENTED**
@@ -92,7 +90,7 @@ class sfile:
         :type  data: bytes
         :return: Amount of bytes inserted.
         """
-        assert SpaceFileException("Operation \"insert\" unimplemented...")
+        raise SpaceFileException("Operation \"insert\" unimplemented...")
 
     def replace(self, data: bytes) -> int:
         """
@@ -115,7 +113,7 @@ class sfile:
         :type size: int
         :return: Amount of bytes erased.
         """
-        assert SpaceFileException("Operation \"erase\" unimplemented...")
+        raise SpaceFileException("Operation \"erase\" unimplemented...")
 
     def sha256(self) -> bytes:
         """
