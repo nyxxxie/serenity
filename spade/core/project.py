@@ -2,8 +2,8 @@ import os
 import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .file import sfile, filemode, hash_file
-from .models.project import Base, ProjectInfo, ProjectFile
+from spade.core.file import sfile, filemode, hash_file
+from spade.core.models.project import Base, ProjectInfo, ProjectFile
 
 SCHEMA_VERSION = "0.1"
 
