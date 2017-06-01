@@ -1,5 +1,5 @@
 from spade.typesystem import typemanager
-from spade.typesystem.typedef import TypeDef, InvalidTypeException
+from spade.typesystem.typedef import TypeDef, SpadeTypeException
 
 class Char(TypeDef):
     __typenames__ = ["char", "c"]
@@ -16,7 +16,7 @@ class Char(TypeDef):
         elif isinstance(data, str):
             return data.upper()
         else:
-            raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
+            raise SpadeTypeException("Data type {} can't be converted.".format(str(type(data))))
 
     def to_bytes(self, data) -> bytes:
         if not data:
@@ -27,7 +27,7 @@ class Char(TypeDef):
         elif isinstance(data, str):
             return data.upper().encode("ascii")
         else:
-            raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
+            raise SpadeTypeException("Data type {} can't be converted.".format(str(type(data))))
 
     def unprintable(self):
         return not self.printable()

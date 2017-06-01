@@ -1,5 +1,5 @@
 from spade.typesystem import typemanager
-from spade.typesystem.typedef import TypeDef, InvalidTypeException
+from spade.typesystem.typedef import TypeDef, SpadeTypeException
 
 class Byte(TypeDef):
     __typenames__ = ["byte", "b"]
@@ -19,7 +19,7 @@ class Byte(TypeDef):
         elif isinstance(data, str):
             return data.upper()
         else:
-            raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
+            raise SpadeTypeException("Data type {} can't be converted.".format(str(type(data))))
 
     def to_bytes(self, data) -> bytes:
         if not data:
@@ -30,6 +30,6 @@ class Byte(TypeDef):
         elif isinstance(data, str):
             return bytes.fromhex(data);
         else:
-            raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
+            raise SpadeTypeException("Data type {} can't be converted.".format(str(type(data))))
 
 typemanager.add_type(Byte)

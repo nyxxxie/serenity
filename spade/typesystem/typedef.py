@@ -1,5 +1,4 @@
-class InvalidTypeException(Exception): pass
-class NullDataException(Exception): pass
+class SpadeTypeException(Exception): pass
 
 class TypeDef:
     def __init__(self, data=None, size=0):
