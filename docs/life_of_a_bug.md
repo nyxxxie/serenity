@@ -1,4 +1,4 @@
-# Life of a Feature
+# Life of a Bug
 This document describes the lifes-cycle of a bug, from discovery to fix.
 It is meant to be useful for anyone who either wants to report a bug or anyone
 who wants to patch some bugs.
