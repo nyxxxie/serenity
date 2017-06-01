@@ -2,9 +2,6 @@ TODO: separate this out to be more organized (like http://google.github.io/style
 
 ## Code style
 Code must adhere to [PEP8][1] with the following additions/exceptions:
-  * Use `import`s for packages and modules only.  This makes namespace
-    management simpler, as the source of each identifier is indicated in a
-    consistent way (e.g. `blah.Thing` says that `Thing` is defined in `blah`).
   * Line length is limited to 79 chars, however this restriction may be lifted
     ignored if it would result in ugly code.  For example, if you add a comment
     to a line that increases that line's length to 100, that is acceptable.
@@ -32,6 +29,8 @@ Code must adhere to [PEP8][1] with the following additions/exceptions:
     intended for it to do.  It also readability, since it's easy to deliniate
     what blocks perform what specific functionality.
   * Prefer `format` to `%`.
+  * Don't use relative imports.  If you need to import code from spade, use the
+    full path.
   * Avoid huge methods.  Split out functionality into private or helper methods
     if a particular block in a function is performing a large task, even if it's
     only used in one specific area.
