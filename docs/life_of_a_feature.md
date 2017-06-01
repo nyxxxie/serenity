@@ -1,12 +1,5 @@
 # Life of a Feature
 
-## What is a "Feature'
-With Spade, a "Feature" is the generic term used to describe a change to the
-codebase that adds in new functionality or improves existing functionality.
-An example of a feature might be adding a new widget to the QT ui, or improving
-the performance of an existing component.  A feature is meant to be a discrete 
-unit of change; try to isolate separate ideas that don't relate with each other.
-
 ## Starting a Feature
 A feature can start in one of two ways: as an issue or as a pull request.
 
