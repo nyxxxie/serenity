@@ -1,6 +1,5 @@
-import struct
 from spade.typesystem import typemanager
-from spade.typesystem.typedef import TypeDef, InvalidTypeException, NullDataException
+from spade.typesystem.typedef import TypeDef, InvalidTypeException
 
 class Char(TypeDef):
     __typenames__ = ["char", "c"]
