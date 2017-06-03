@@ -1,8 +1,8 @@
 import os
 from math import log
-from PyQt5.QtWidgets import QWidget, QAbstractScrollArea
+from PyQt5.QtWidgets import QAbstractScrollArea
 from PyQt5.QtCore import Qt, QRect
-from PyQt5.QtGui import QPainter, QFont, QFontMetrics, QColor, QPen
+from PyQt5.QtGui import QPainter, QFont, QFontMetrics, QColor
 
 COLUMN_GAP=6
 TEXT_OFFSET=4
@@ -10,6 +10,7 @@ ROW_OFFSET=0
 BYTE_GAP=4
 BYTES_PER_ROW=16
 
+# TODO: delete this when SFile is integrated into the hex editor
 def get_file_size(f):
     old_pos = f.tell()
     f.seek(0, os.SEEK_END)
@@ -17,10 +18,16 @@ def get_file_size(f):
     f.seek(old_pos, os.SEEK_SET)
     return size
 
-class HexEditorColumn:
+
+class HexEditorColumn(object):
+    """Abstract class that defines the basis for a column in the hex editor."""
+
     def __init__(self, hexeditor):
         self.hexeditor = hexeditor
         self.width = 0
+
+    def render(self, start, paint):
+        pass
 
     def cursor(self):
         return self.hexeditor.cursor
@@ -49,19 +56,19 @@ class HexEditorColumn:
     def file_size(self):
         return get_file_size(self.hexeditor.file)
 
+
 class AddressColumn(HexEditorColumn):
-    def __init__(self, hexeditor):
-        super().__init__(hexeditor)
+    """Hex editor column that displays the address each line starts on."""
 
     def render(self, start, paint):
         # If this isn't the first column rendered, space ourselves out from the
         # previous column
-        if (start != 0):
+        if start:
             start += COLUMN_GAP
 
         # Calc width of the address bar
-        n = self.file_size()
-        byte_num = int(log(n, 0xff)) + 1 if n != 0 else 1
+        fsize = self.file_size()
+        byte_num = int(log(fsize, 0xff)) + 1 if fsize != 0 else 1
         if byte_num < 4:
             byte_num = 4 # byte num should at least be 4
         width = ((byte_num+1)*self.font_width()) + (2*TEXT_OFFSET)
@@ -82,14 +89,14 @@ class AddressColumn(HexEditorColumn):
         # Let caller know how much space we took up while drawing
         return start + width
 
+
 class HexColumn(HexEditorColumn):
-    def __init__(self, hexeditor):
-        super().__init__(hexeditor)
+    """Hex editor column that displays hex-formatted data."""
 
     def render(self, start, paint):
         # If this isn't the first column rendered, space ourselves out from the
         # previous column
-        if (start != 0):
+        if start:
             start += COLUMN_GAP
 
         # Calc width of the address bar
@@ -119,14 +126,14 @@ class HexColumn(HexEditorColumn):
         # Let caller know how much space we took up while drawing
         return start + width
 
+
 class AsciiColumn(HexEditorColumn):
-    def __init__(self, hexeditor):
-        super().__init__(hexeditor)
+    """Hex editor column that displays ascii-formatted data."""
 
     def render(self, start, paint):
         # If this isn't the first column rendered, space ourselves out from the
         # previous column
-        if (start != 0):
+        if start:
             start += COLUMN_GAP
 
         # Calc width of the address bar
@@ -155,63 +162,9 @@ class AsciiColumn(HexEditorColumn):
         # Let caller know how much space we took up while drawing
         return start + width
 
+
 class HexEditor(QAbstractScrollArea):
-    def _adjust(self):
-        """
-        Recalculates scrollbar variables when window size/contents are changed.
-        """
-        # We don't need to set any of this if file is bad
-        if self.file is None:
-            return
-
-        self.rows_total = int(get_file_size(self.file) / BYTES_PER_ROW)
-        self.rows_shown = int((self.viewport().height() / (self.font_height+ROW_OFFSET))) + 1
-        self.widgets_width = 1000
-
-        self.horizontalScrollBar().setRange(0, self.widgets_width - self.viewport().width());
-        self.horizontalScrollBar().setPageStep(self.viewport().width());
-        self.verticalScrollBar().setRange(0, self.rows_total)
-        self.verticalScrollBar().setPageStep(self.rows_shown)
-
-    def setFont(self, font):
-        """
-        Sets font and updates related variables and the viewport.
-        """
-        # Set font
-        super().setFont(font)
-
-        # Calculate font width and height
-        fm = QFontMetrics(font)
-        self.font_width = fm.width(" ")
-        self.font_height = int(fm.height()/2) - 1
-
-        # Recalc vars since font has changed
-        self._adjust()
-        self.viewport().update()
-
-    def setFile(self, f):
-        self.file = f
-        self._adjust()
-        self.viewport().update()
-
-    def drawNoFile(self, paint):
-        paint.drawText(self.geometry(), Qt.AlignCenter, "No file, add one!")
-
-    def drawFile(self, paint):
-        start = 0
-        for widget in self.widgets:
-            start = widget.render(start, paint)
-
-    def paintEvent(self, e):
-        """
-        Called by qt when window wants to paint itself.
-        """
-        paint = QPainter(self.viewport())
-
-        if self.file is None:
-            self.drawNoFile(paint)
-        else:
-            self.drawFile(paint)
+    """Hex editor widget implementation."""
 
     def __init__(self):
         super().__init__()
@@ -231,8 +184,73 @@ class HexEditor(QAbstractScrollArea):
             AsciiColumn(self)
         ]
 
-        self.verticalScrollBar().setValue(0);
-        self.horizontalScrollBar().setValue(0);
+        self.verticalScrollBar().setValue(0)
+        self.horizontalScrollBar().setValue(0)
 
         self.setFont(QFont("Monospace", 7, QFont.Light))
         #self.setFile(open("testfile", "rb"))
+
+    def setFont(self, font):
+        """Sets the font to use in the hex editor.
+
+        :param font: Font to use.
+        :type  font: QFont
+        """
+        # Set font
+        super().setFont(font)
+
+        # Calculate font width and height
+        fm = QFontMetrics(font)
+        self.font_width = fm.width(" ")
+        self.font_height = int(fm.height()/2) - 1
+
+        # Recalc vars since font has changed
+        self._adjust()
+        self.viewport().update()
+
+    def setFile(self, f):
+        """Sets the file to get data from.
+
+        :param font: File to get data from.
+        :type  font: SFile
+        """
+        self.file = f
+        self._adjust()
+        self.viewport().update()
+
+    def _draw_no_file(self, paint):
+        """Draws a message when no file has been set."""
+        paint.drawText(self.geometry(), Qt.AlignCenter, "No file, add one!")
+
+    def _draw_file(self, paint):
+        """Draw each of the widgets in this hex editor."""
+        start = 0
+        for widget in self.widgets:
+            start = widget.render(start, paint)
+
+    def paintEvent(self, event): #pylint: disable=unused-argument
+        """Called by QT when window wants to paint itself."""
+        paint = QPainter(self.viewport())
+
+        if self.file:
+            self._draw_file(paint)
+        else:
+            self._draw_no_file(paint)
+
+    def _adjust(self):
+        """Recalculates sizing vars when window size/contents are changed."""
+        # We don't need to set any of this if file is bad
+        if not self.file:
+            return
+
+        self.widgets_width = 1000
+        self.rows_total = int(get_file_size(self.file)
+                / BYTES_PER_ROW)
+        self.rows_shown = int((self.viewport().height()
+                / (self.font_height+ROW_OFFSET))) + 1
+
+        self.horizontalScrollBar().setRange(0,
+                self.widgets_width - self.viewport().width())
+        self.horizontalScrollBar().setPageStep(self.viewport().width())
+        self.verticalScrollBar().setRange(0, self.rows_total)
+        self.verticalScrollBar().setPageStep(self.rows_shown)

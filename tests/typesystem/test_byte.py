@@ -66,6 +66,6 @@ def test_convert_to_string(string, byte):
 # ---------------------------
 # TYPESYSTEM INTEGRATION
 # ---------------------------
-def test_typemanager_byte_added_all_names():
+def test_typemanager_added():
     for name in Byte.__typenames__:
         assert typemanager.get_type(name) is not None

@@ -118,6 +118,6 @@ def test_convert_positive_bytes():
 # ---------------------------
 # TYPESYSTEM INTEGRATION
 # ---------------------------
-def test_typemanager_byte_added_all_names():
+def test_typemanager_added():
     for name in Int32.__typenames__:
         assert typemanager.get_type(name) is not None

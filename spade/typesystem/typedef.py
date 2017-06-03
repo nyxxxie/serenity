@@ -1,6 +1,6 @@
 class SpadeTypeException(Exception): pass
 
-class TypeDef:
+class TypeDef(object):
     def __init__(self, data=None, size=0):
         self._string = None
         self._bytes = None
@@ -23,14 +23,10 @@ class TypeDef:
     def size(self) -> int:
         return self._size
 
-    def to_string(data) -> str:
-        """
-        TODO: Implement this method for your custom type.
-        """
-        return None
+    def to_string(self, data) -> str:
+        """TODO: Implement this method for your custom type."""
+        pass
 
-    def to_bytes(data) -> bytes:
-        """
-        TODO: Implement this method for your custom type.
-        """
-        return None
+    def to_bytes(self, data) -> bytes:
+        """TODO: Implement this method for your custom type."""
+        pass

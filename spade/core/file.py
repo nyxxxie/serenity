@@ -2,25 +2,25 @@ import hashlib
 
 class SpaceFileException(Exception): pass
 
-class filemode:
-    read = "rb"
-    write = "ab"
-    rw = "ab+"
 
-class sfile:
-    """
-    Provies a wrapper over the built-in file that is used to help a spade
-    project track changes and status of a file.  This object offers all of the
-    functionality found in the original file, with a few extra methods added on
-    top to enable some spade-specific functionality.
+class SFile(object):
+    """Wrapper over built-in file object that some spade-specific behavior.
+
+    Primarily used to help a spade project track changes and status of a file.
+    This object offers all of the functionality found in the original file,
+    with a few extra methods modified and added to enable some spade-specific
+    functionality.
     """
 
-    def __init__(self, project, path: str, mode: filemode=filemode.rw):
+    mode_read = "rb"
+    mode_write = "ab"
+    mode_rw = "ab+"
+
+    def __init__(self, project, _file, path: str):
         self.path = path
-        self.mode = mode
         self.project = project
         self._closed = False
-        self._file = open(path, mode)
+        self._file = _file
         project._register_file(path, self.sha256())
 
     def __enter__(self):
@@ -36,19 +36,36 @@ class sfile:
         return self.__repr__()
 
     def __getattr__(self, name):
+        """This method is a bit of a hack, so here's an explaination:
+
+        tl;dr this method transparently tries to get attributes that are not
+        defined in SFile from the built-in file object.
+
+        The goal of this class is to provide a transparent wrapper over the
+        built-in file object that allows us to hook and modify the behavior of
+        various methods.  However, since we only modify a few of the methods, we
+        can either choose to manually implement all of the other methods that we
+        don't really care about or we can leave some unimplemented.  Leaving
+        some methods unimplemented ruins the goal of this class being a
+        transparent replacement, but implementing all of them means we add a
+        bunch of repetitive crap to this class and risk missing some more
+        niche items.  To get around that, we can override this method to
+        effectively query the underlying file object for attributes we don't
+        have but it might.
+        """
         return getattr(self._file, name)
 
     def save(self):
-        """
-        Saves a file that has been modified.  This is requied because, even
-        though in the current implementation of sfile we write directly to the
-        file on disk, we must inform the project that we've updated it.
+        """Saves a file that has been modified.
+
+        This is requied because, even though in the current implementation of
+        SFile we write directly to the file on disk, we must inform the project
+        that we've updated it.
         """
         self.project._update_file_hash(self.path, self.sha256())
 
     def seek(self, offset: int=0, from_what: int=0) -> int:
-        """
-        Sets the cursor position relative to some position.
+        """Sets the cursor position relative to some position.
 
         :param offset: Offset into file relative to from_what parameter.
         :param from_what: Determines what the above offset is relative to.
@@ -67,10 +84,14 @@ class sfile:
         return self._file.seek(offset, from_what)
 
     def close(self, save: bool=True):
-        """
-        Closes a file.
+        """Closes a file.
 
-        :param save: Determines if we should automatically save this file on close.
+        :param save: Determines if we should automatically save this file on
+               close.  Set to True by default because I'm almost 100% sure no
+               one's going to read the docs and will complain when their
+               projects don't reload properly.  Plus, I imagine there are very
+               few scenarios when the common user won't want to save their
+               changes to the project.
         :type save: bool
         """
         # Save file before we close it
@@ -82,19 +103,17 @@ class sfile:
         self._closed = True
 
     def insert(self, data: bytes) -> int:
-        """
-        **NOT IMPLEMENTED**
+        """**NOT IMPLEMENTED**
         Insert bytes into file starting at the current cursor position.
 
         :param data: Bytes to insert.
         :type  data: bytes
         :return: Amount of bytes inserted.
         """
-        raise SpaceFileException("Operation \"insert\" unimplemented...")
+        pass #TODO: implement
 
     def replace(self, data: bytes) -> int:
-        """
-        Replaces bytes in file starting at the current cursor position.
+        """Replaces bytes in file starting at the current cursor position.
 
         :param data: Bytes to replace.
         :type  data: bytes
@@ -103,35 +122,41 @@ class sfile:
         return self._file.write(data)
 
     def erase(self, size: int=None) -> int:
-        """
-        **NOT IMPLEMENTED**
+        """**NOT IMPLEMENTED**
         Deletes bytes from file.
 
         :param size: Amount of bytes to erase.  If this is None or no amount
-                     specified, erase will erase all bytes after the cursor's
-                     current position.
+               specified, erase will erase all bytes after the cursor's
+               current position.
         :type size: int
         :return: Amount of bytes erased.
         """
-        raise SpaceFileException("Operation \"erase\" unimplemented...")
+        pass #TODO: implement
 
     def sha256(self) -> bytes:
-        """
-        Calculates the sha256 hash of the file.
+        """Calculates the sha256 hash of the file.
 
         :return: SHA256 hash (in bytes).
         """
         return hash_file(self.path)
 
+    @classmethod
+    def open(cls, project, path: str, mode: str=mode_rw):
+        f = open(path, mode)
+        if not f or not project:
+            return None
+
+        return cls(project, f, path)
+
+
 def hash_file(path: str) -> bytes:
-    """
-    Utility function that calculates the hash of a file.
+    """Utility function that calculates the hash of a file.
 
     :param path: Path to the file to hash.
     :type  path: str
     """
     with open(path, "rb") as f:
         f.seek(0,0) # seek to beginning of file
-        m = hashlib.sha256()
-        m.update(f.read())
-        return m.digest()
+        h = hashlib.sha256()
+        h.update(f.read())
+        return h.digest()

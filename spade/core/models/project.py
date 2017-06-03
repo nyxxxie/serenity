@@ -1,7 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, String, Binary
 
-Base = declarative_base()
+Base = declarative_base() #pylint: disable=invalid-name
 
 class ProjectInfo(Base):
     __tablename__ = "project_info"

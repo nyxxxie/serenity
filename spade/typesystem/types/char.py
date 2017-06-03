@@ -16,7 +16,7 @@ class Char(TypeDef):
         elif isinstance(data, str):
             return data.upper()
         else:
-            raise SpadeTypeException("Data type {} can't be converted.".format(str(type(data))))
+            raise SpadeTypeException("Can't convert {}.".format(type(data)))
 
     def to_bytes(self, data) -> bytes:
         if not data:
@@ -27,7 +27,7 @@ class Char(TypeDef):
         elif isinstance(data, str):
             return data.upper().encode("ascii")
         else:
-            raise SpadeTypeException("Data type {} can't be converted.".format(str(type(data))))
+            raise SpadeTypeException("Can't convert {}.".format(type(data)))
 
     def unprintable(self):
         return not self.printable()
@@ -37,7 +37,7 @@ class Char(TypeDef):
             return False
 
         for char in self.bytes():
-            if (0x00 <= char and char <= 0x1F) or char == 0x7F:
+            if (char >= 0x00 and char <= 0x1F) or char == 0x7F:
                 return False
 
         return True
