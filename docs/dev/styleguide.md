@@ -1,12 +1,28 @@
 TODO: separate this out to be more organized (like http://google.github.io/styleguide/pyguide.html)
 
-## Code style
-Code must adhere to [PEP8][1] with the following additions/exceptions:
-  * Line length is limited to 79 chars, however this restriction may be lifted
-    ignored if it would result in ugly code.  For example, if you add a comment
-    to a line that increases that line's length to 100, that is acceptable.
-    The pylint config bundled with this repo defaults to 80, so if you go over
-    and trigger a warning please make sure there's a good reason for it.
+# Style Guide
+We mostly adhere to [PEP8][1], with the following additions and specifications.
+
+Table of Contents:
+  * [General](#general)
+    * [Line Length](#line-length)
+  * [Classes](#classes)
+
+## General
+
+### Line Length
+#### Rule
+Line length is limited to 80 chars.  This limit may be lifted if the line
+contains a url, a comment, or in other specific scenarios when trying to stick
+to the rule produces ugly code.
+#### Reason
+Column limits are useful because they keep code from extending past a reasonable
+editing window.  Obviously no one is programming on an 80 char terminal anymore,
+but this limit is still useful because it helps fit more information on your
+screen (documentation, more editing windows, etc).
+
+
+TODO: translate the rest of this to the above format
   * Class methods must be declared in the following order:
       1. Special class methods (`__init__`, `__str__`, etc)
       2. Public class methods

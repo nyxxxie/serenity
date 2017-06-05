@@ -1,4 +1,4 @@
-## Documentation
+# Documentation
 All methods and classes should have docstrings written for them.  As spade
 currently uses [sphinx][1] for generating documentation, docstrings will be
 displayed as [reStructuredText][2].  Docstrings, therefore,  may make use it's

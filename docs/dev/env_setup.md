@@ -2,10 +2,10 @@
 In order to work on spade, you'll need to set up an environment that'll allow
 you to make, test and submit changes.  Please perform these first initial steps:
   * Register a github account
-  * Fork the main [spade repository][1]
+  * Fork the main spade repository
   * Install Python 3.4 or above
 
-For development, we also reccomend setting up a [virtual environment][2].  This
+For development, we also reccomend setting up a [virtual environment][1].  This
 is useful as it allows you to install dependencies and make spade's modules
 visible in an environment isolated from the rest of your python projects.  The
 process of setting up spade using a virtual environment looks something like
@@ -34,4 +34,4 @@ Once your environment is configured, you are ready to start contributing.
 Please remember to activate your virtual environment when you want to run
 the development version of spade.
 
-
+[1]: http://python-guide-pt-br.readthedocs.io/en/latest/dev/virtualenvs/
