@@ -117,8 +117,6 @@ actually spend time figuring it out.  We shouldn't have to reverse engineer the
 code of a reverse engineering tool, after all :)
 #### Example
 ```python
-...
-
 # If this isn't the first column rendered, space ourselves out from the
 # previous column
 if (start != 0):
