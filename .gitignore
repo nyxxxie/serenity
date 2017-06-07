@@ -1,4 +1,6 @@
-venv
+venv/
+build/
+dist/
 docs/.build
 spade.egg-info
 .cache
@@ -8,3 +10,4 @@ tests/testdb.sdb
 spade/template/parser.out
 spade/template/parsetab.py
 *log.txt
+.coverage

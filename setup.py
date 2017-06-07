@@ -10,13 +10,19 @@ setup(
     author_email='nyxxxxie@gmail.com',
     license='GNU GPL v3',
     packages=['spade'],
+    package_data={
+        '': [ 'qspade' ],
+        "spade": [ ],
+    },
     install_requires=[
         'PyQt5',
+        'pylint',
         'pyyaml',
         'sqlalchemy',
         'Sphinx',
         'ply',
         'pytest'
+        'pytest-cov'
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
