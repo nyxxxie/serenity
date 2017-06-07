@@ -1,6 +1,5 @@
-import struct
 from spade.typesystem import typemanager
-from spade.typesystem.typedef import TypeDef, InvalidTypeException, NullDataException
+from spade.typesystem.typedef import TypeDef, SpadeTypeException
 
 class Char(TypeDef):
     __typenames__ = ["char", "c"]
@@ -17,7 +16,7 @@ class Char(TypeDef):
         elif isinstance(data, str):
             return data.upper()
         else:
-            raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
+            raise SpadeTypeException("Can't convert {}.".format(type(data)))
 
     def to_bytes(self, data) -> bytes:
         if not data:
@@ -28,7 +27,7 @@ class Char(TypeDef):
         elif isinstance(data, str):
             return data.upper().encode("ascii")
         else:
-            raise InvalidTypeException("Data type {} can't be converted.".format(str(type(data))))
+            raise SpadeTypeException("Can't convert {}.".format(type(data)))
 
     def unprintable(self):
         return not self.printable()
@@ -38,7 +37,7 @@ class Char(TypeDef):
             return False
 
         for char in self.bytes():
-            if (0x00 <= char and char <= 0x1F) or char == 0x7F:
+            if (char >= 0x00 and char <= 0x1F) or char == 0x7F:
                 return False
 
         return True

@@ -1,5 +1,5 @@
 from spade.typesystem.manager import TypeManager
-from spade.typesystem.types import type_amt
+from spade.typesystem.types import TYPE_AMOUNT
 from spade.typesystem import typemanager
 
 # ---------------------------
@@ -15,4 +15,4 @@ def test_init():
 # ---------------------------
 def test_typemanager_types_added():
     assert typemanager is not None
-    assert len(typemanager._types) == type_amt
+    assert len(typemanager._types) == TYPE_AMOUNT

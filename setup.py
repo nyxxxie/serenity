@@ -16,10 +16,12 @@ setup(
     },
     install_requires=[
         'PyQt5',
+        'pylint',
         'pyyaml',
         'sqlalchemy',
         'Sphinx',
         'pytest'
+        'pytest-cov'
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],

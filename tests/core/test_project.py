@@ -1,10 +1,10 @@
 import os
 import pytest
 from shutil import copyfile
-from spade.core.file import sfile, filemode
+from spade.core.file import SFile
 from spade.core.project import Project, SpadeProjectException, SCHEMA_VERSION
-from .utils.project_sql import check_table
-from .fixtures import testfile1, testfile2, project, dbfile
+from tests.utils.project_sql import check_table
+from tests.core.fixtures import testfile1, testfile2, project, DB_FILE
 
 def test_initialization(testfile1, project):
     assert project is not None
@@ -46,9 +46,9 @@ def test_open_files(testfile1, testfile2, project):
     assert project is not None
 
     # Open files
-    f1 = project.open_file(testfile1, filemode.read)
+    f1 = project.open_file(testfile1, SFile.mode_read)
     assert f1 is not None
-    f2 = project.open_file(testfile2, filemode.read)
+    f2 = project.open_file(testfile2, SFile.mode_read)
     assert f2 is not None
 
     paths = project.files()
@@ -60,7 +60,7 @@ def test_fail_modified_file(testfile1, testfile2, project):
     assert project is not None
 
     # Open file (and thereby register it in the project)
-    f1 = project.open_file(testfile1, filemode.read)
+    f1 = project.open_file(testfile1, SFile.mode_read)
     assert f1 is not None
     f1.close()
 
@@ -71,7 +71,7 @@ def test_fail_modified_file(testfile1, testfile2, project):
     # Try to open new project and check to see if this fails
     caught = False
     try:
-        project = Project(dbfile)
+        project = Project(DB_FILE)
     except SpadeProjectException as e:
         caught = True
 
@@ -81,7 +81,7 @@ def test_fail_deleted_file(testfile1, project):
     assert project is not None
 
     # Open file (and thereby register it in the project)
-    f1 = project.open_file(testfile1, filemode.read)
+    f1 = project.open_file(testfile1, SFile.mode_read)
     assert f1 is not None
     f1.close()
 
@@ -90,7 +90,7 @@ def test_fail_deleted_file(testfile1, project):
 
     caught = False
     try:
-        project = Project(dbfile)
+        project = Project(DB_FILE)
     except SpadeProjectException as e:
         caught = True
 

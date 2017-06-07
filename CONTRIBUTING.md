@@ -3,175 +3,37 @@ Spade welcomes all kinds from contributions from anyone who wants to
 contribute their skill and vision to the tool.  This file serves as a guide
 intended to help you figure out how and what to contribute to spade.
 
-## Setting up environment
-In order to work on spade, you'll need to set up an environment that'll allow
-you to make, test and submit changes.  Please perform these first initial steps:
-  * Register a github account
-  * Fork the main [spade repository][1]
-  * Install Python 3.4 or above
+## How do I get started?
+If you haven't worked on this project, the following docs should help.
+  * [Getting Started][1], some notes on getting started.
+  * [Setting Up the Environment][2], so you can run spade's code locally.
+  * [Documenting code][3], useful to understand how to read docs.
 
-For development, we also reccomend setting up a [virtual environment][2].  This
-is useful as it allows you to install dependencies and make spade's modules
-visible in an environment isolated from the rest of your python projects.  The
-process of setting up spade using a virtual environment looks something like
-this:
+## I want to contribute...
 
-### Linux
-```shell
-cd <your forked git repo> # Enter project directory
-virtualenv venv           # Create virtual environment
-. venv/bin/activate       # Activate the virtual environment
-pip install -e .          # Install all dependencies and add spade components to path
-```
+### ...A bug (report/fix)
+Since the project is still pretty small and our bug tracker isn't swamped with
+useless crap, feel free to submit any issue you have experienced with spade or
+any problems you've had with it.  Check out the following docs for more info:
+  * [Life of a Bug][5].
 
-### Mac
-```shell
-cd <your forked git repo> # Enter project directory
-virtualenv venv           # Create virtual environment
-. venv/bin/activate       # Activate the virtual environment
-pip install -e .          # Install all dependencies and add spade components to path
-```
+### ...A feature
+We define a feature as any code addition or modification intended to add or
+improve functionality.  A feature is meant to be a discrete unit of change; try
+to isolate separate components into their own features as much as possible.
+The following documentation should be useful in getting up to speed with
+contributing a feature:
+  * [Life of a Feature][6].
 
-### Windows
-*TODO: write this*
+### ...A documentation
+If you feel documentation is lacking for a particular aspect of spade or feel
+that some insight you've had might be benifical to the community, feel free to
+submit documentation.  The following might be helpful:
+  * [Documenting code][4].
 
-Once your environment is configured, you are ready to start contributing.
-Please remember to activate your virtual environment when you want to run
-the development version of spade.
-
-## Getting started
-The biggest challenge to getting started is getting to know the codebase well
-enough to feel comfortable contributing.  Here are some low-complexity tasks
-that you may consider engaging in to help become familiar with spade:
-  * Create new unit tests
-  * Investigate/fix low complexity bugs
-  * Implement approved feature requests
-
-## Feature requests
-If you have an idea for a feature you would like to see in spade or would like
-to implement, submit an issue.  Approved feature requests will be given the
-cooresponding label.  If no one is assigned and there are no [wip] pull
-requests for that issue, feel free to implement it.
-
-When developing features, prioritize ease of use and usefulness in your
-decisions.  For example, if you're adding a new api function, you should be
-able to imagine a use case for it that necessitates its addition.  This is
-especially true when such decisions complicate the api for new users.
-
-## Pull requests
-If you want to contribute code, use pull requests.  Pull requests should be
-used to make others aware of your work on a code change or to ask for feedback
-on a change.  If your feature is in progress, please prefix your pull request
-with [WIP].  If you have an idea with no code or do not intend to work on the
-feature, use the issue tracker.  Make all your changes in a topic branch as
-opposed to master.
-
-## Bug patching
-A good way to contribute and get familiar with spade's internals is to
-investigate and patch bugs.  Contribute bug patches just as you would
-contribute any other code, but please also include a unit test to test for the
-bug in question.  When a bug is submitted to the issue tracker, it will be
-rated and assigned if applicable.  Before you start your patch, ensure there
-are no [wip] pull requests opne for that bug and that no one is assigned to it.
-
-## Testing
-Spade requires that all major code additions or modifications be accompanied by
-tests.  Tests make life easier for all parties because it helps us ensure your
-code is working, helps future developers ensure their code doesn't break
-anything, and gives new developers pseudo-documentation to reference when trying
-to understand your api.
-
-We reccomend adopting a test-driven development workflow so that your tests keep 
-up with the code you write, and serve to actually help you develop rather than 
-provide a chore when your feature is ready.  When designing tests, please try to
-cover each code path in each function (unit tests) as well as test against weird 
-inputs.  Also write tests to make sure your components interact properly with
-any other associated components (integration tests).
-
-If you are looking for a low-complexity way to start working on spade, creating
-new tests for existing code is an excellent and useful way to do so!
-
-## Branching
-Please implement all features in feature branches named with the template
-`<type>/<name>`.  Valid types include:
-  * `feature` - For use on branches that add new functionality or improvements
-    to spade
-  * `bug` - For use on branches that are intended to address a bug.
-  
-Please use the `<name>` field to reference an issue number, especially for bugs.
-If you want to contribute a feature and there is no issue for it in the issue
-tracker, you may use a descriptive english name for `<name>` 
-(EG: `feature/new_widget`).  Favor underscores over dashes for spaces.
-
-## Code style
-Code must adhere to [PEP8][4] with the following additions:
-  * Line length is limited to 79 chars, however this restriction may be lifted
-    ignored if it would result in ugly code.  For example, if you add a comment
-    to a line that increases that line's length to 100, that is acceptable.
-  * Class methods must be declared in the following order:
-      1. Special class methods (`__init__`, `__str__`, etc)
-      2. Public class methods
-      3. Private class methods (prefixed with _)
-  * Refrain from using double underscore prefixes for methods and variables.
-  * Please use [type hints][7] where applicable.
-  * Use spaces for indents.
-
-## Documentation
-All methods and classes should have docstrings written for them.  As spade
-currently uses [sphinx][8] for generating documentation, docstrings will be
-displayed as [reStructuredText][9].  Docstrings, therefore,  may make use it's
-markup to add emphasis, charts, code examples, etc to their docstrings.
-
-Documentation may be generated using the Makefile in the `docs` folder, or 
-alternately by using the command `python setup.py build_sphinx`.  Generated
-documentation will be located in `docs/.build/<type>/`, where `<type>` is the
-type of documentation that was generated (html, manpages, etc).
-
-### Methods
-Docstrings for methods should describe that method's purpose, arguments, and 
-return value at minimum.  A good rule of thumb to follow is that a user should
-know when and how to use a method simply by looking at its signature and
-docstring.  The following is an example of an acceptable dostring:
-```python
-    def seek(self, offset: int=0, from_what: int=0) -> int:
-        """
-        Sets the cursor position relative to some position.
-
-        :param offset: Offset into file relative to from_what parameter.
-        :param from_what: Determines what the above offset is relative to.
-        :return: Cursor position after the seek operation completes.
-
-        The reference point specified by the ``from_what`` parameter should
-        take on one of the following values:
-
-            * 0 - Offset from beginning of file.
-            * 1 - Offset from current cursor position.
-            * 2 - Offset from end of file.
-
-        The ``from_what`` parameter may be omitted, and will default to 0
-        (beginning of file).
-        """
-```
-
-### Classes
-Docstrings for classes should describe that class's purpose in the project.  A
-rule of thumb to go by with class docstrings is that a developer should be able
-to know exactly what the class is for and how it is meant to be used by reading
-the docstring by itself.
-
-## Bug reporting
-Please note that the issue tracker is *not* tech support.  Please only report
-faults or issues in spade itself.  When you report, please use [this template][5]
-to give us information necessary to diagnose and fix your bug.  If you have
-found a potential bug related to security, please email `nyxxxxie at gmail`
-directly.  Nyxxie's public key can be found on [keybase][6].
-
-[1]: https://github.com/nyxxxie/spade
-[2]: https://docs.python-guide.org/en/latest/dev/virtualenvs/
-[3]: http://nvie.com/posts/a-successful-git-branching-model/
-[4]: https://www.python.org/dev/peps/pep-0008/#code-lay-out
-[5]: BUG_TEMPLATE.txt
-[6]: https://keybase.io/nyxxie/
-[7]: https://www.python.org/dev/peps/pep-0484/
-[8]: http://www.sphinx-doc.org
-[9]: http://www.sphinx-doc.org/en/stable/rest.html
+[1]: docs/dev/getting_started.md
+[2]: docs/dev/env_setup.md
+[3]: docs/dev/styleguide.md
+[4]: docs/dev/documenting_code.md
+[5]: docs/dev/life_of_a_bug.md
+[6]: docs/dev/life_of_a_feature.md

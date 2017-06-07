@@ -2,20 +2,20 @@ import os
 import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .file import sfile, filemode, hash_file
-from .models.project import Base, ProjectInfo, ProjectFile
+from spade.core.file import SFile, hash_file
+from spade.core.models.project import Base, ProjectInfo, ProjectFile
 
 SCHEMA_VERSION = "0.1"
 
 class SpadeProjectException(Exception): pass
 
-class Project:
-    """
-    Stores the state and data of a Spade session.  Specifically, a project
-    stores information on files that were opened, templates, and file metadata.
-    Additionally, any data saved by plugins, analysis, etc is stored in a
-    project.  Projects by default store this data directly on disk in a sqlite
-    database.
+class Project(object):
+    """Stores the state and data of a Spade session.
+
+    Specifically, a project stores information on files that were opened,
+    templates, and file metadata.  Additionally, any data saved by plugins,
+    analysis, etc is stored in a project.  Projects by default store this data
+    directly on disk in a sqlite database.
     """
 
     def __init__(self, dbfile):
@@ -24,29 +24,26 @@ class Project:
     def __str__(self):
         return "<project (dbfile=\"%s\")>" % (self.db_file)
 
-    def open_file(self, path: str, mode: filemode=filemode.rw) -> sfile:
-        """
-        Opens a file to be tracked by this project.
+    def open_file(self, path: str, mode: str=SFile.mode_rw) -> SFile:
+        """Opens a file to be tracked by this project.
 
         :param path: Path to file that should be opened.
         :type  path: str
         :param mode: Mode to open file in (default: read/write).
-        :type  mode: :ref:`filemode <file>`
-        :return: A :ref:`sfile <file>` object corresponding to the file.
+        :type  mode: :ref:`Filemode <file>`
+        :return: A :ref:`SFile <file>` object corresponding to the file.
         """
-        return sfile(self, path, mode)
+        return SFile.open(self, path, mode)
 
     def db_engine(self):
-        """
-        Returns the sqlalchemy engine currently in use.
+        """Returns the sqlalchemy engine currently in use.
 
         :return: sqlalchemy engine currently in use.
         """
-        return self._engine
+        return self._db_engine
 
     def files(self):
-        """
-        Returns a list of all files tracked by the project.
+        """Returns a list of all files tracked by the project.
 
         :return: A list of all files tracked by the project.
         """
@@ -57,12 +54,12 @@ class Project:
         return paths
 
     def get_info(self, key: str=None):
-        """
-        Retrieves information about the project (schema version, database path,
-        etc).  If no key is specified, this function will return a list of all
-        project info available.
+        """Retrieves project metadata associated with a key.
 
-        :param key: Key cooresponding to information item to fetch.  If this is
+        If no key is specified, this function will return a list of all
+        project metadata available.
+
+        :param key: Key cooresponding to metadata item to fetch.  If this is
                     None, function will return a map of all info items in the
                     project.
         :type key: str
@@ -120,7 +117,8 @@ class Project:
 
         entry = session.query(ProjectFile).filter_by(path=path).first()
         if entry is None:
-            assert SpadeProjectException("Can't update hash, no file registered at \"%s\"." % path)
+            assert SpadeProjectException(("Can't update hash, no file "
+                    "registered at \"{}\".").format(path))
         entry.sha256 = file_hash
 
         session.commit()
@@ -128,9 +126,9 @@ class Project:
     def _db_init(self, path: str):
         # Create engine
         engine = create_engine(
-            "sqlite:///" + path,         # Create sqlite db and engine for sqlalchemy
-            echo=False)                  # TODO: This should probably be commented out at some point
-        Base.metadata.create_all(engine) # Adds all of our tables into the sqlite db
+            "sqlite:///" + path, # Create sqlite db and engine for sqlalchemy
+            echo=False) # TODO: This should probably be commented out at some point
+        Base.metadata.create_all(engine) # Adds all of our tables into the db
         self.db_file = path
         self._db_engine = engine
 
@@ -148,17 +146,22 @@ class Project:
         # Make sure project version string is compatible with this version of spade
         schema_version = self.get_info("schema_version")
         if schema_version != SCHEMA_VERSION:
-            raise SpadeProjectException("Project schema version \"%s\" is incompatible with this version of spade." % schema_version)
+            raise SpadeProjectException(("Project schema version \"{}\" is "
+                    "incompatible with this version of "
+                    "spade.").format(schema_version))
 
         # Make sure all files tracked by his project exist and match their stored hashes
         for entry in self._db_get_files():
             # Make sure file exists
             if not os.path.exists(entry.path):
-                raise SpadeProjectException("Could not find tracked file \"%s\"." % entry.path)
+                raise SpadeProjectException("Could not find tracked file "
+                                            "\"{}\".".format(entry.path))
 
             # Make sure file hash matches
             if hash_file(entry.path) != entry.sha256:
-                raise SpadeProjectException("File \"%s\" has been modified since last open." % entry.path)
+                raise SpadeProjectException("File \"{}\" has been modified "
+                                            "since last "
+                                            "open.".format(entry.path))
 
     def _db_update(self):
         if self.get_info("schema_version") is None:
@@ -166,4 +169,3 @@ class Project:
 
         date = datetime.datetime.now()
         self._add_info("update_datetime", date)
-
