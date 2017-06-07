@@ -3,9 +3,6 @@ Spade attempts to make use of the convention and layouts popular in other
 projects.  The hardest part about getting started will likely be getting familar
 enough with the codebase to understand how you might contribute an improvement
 or idea you have.  We reccomend the following to understand what's going on:
-  * Check out [this document] for a description of how the repo is organized.
-    Use this to hone in on areas that might be relevant to your proposed
-    contribution and to understand where it might belong.
   * When trying to learn about a method or class, how you learn it depends on
     the reason why you need to learn about it:
       1. **What is it for?** All documented components should explain their

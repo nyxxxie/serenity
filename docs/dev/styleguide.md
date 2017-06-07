@@ -13,7 +13,8 @@ Table of Contents:
     * [Punctuation in comments](#punctuation-in-comments)
     * [Logical block commenting](#logical-block-commenting)
   * [Classes](#classes)
-    * [Method Order](#method-order)
+    * [Method naming](#method-naming)
+    * [Method order](#method-order)
   * [Imports](#imports)
     * [Relative imports](#relative-imports)
   * [Exceptions](#exceptions)
@@ -131,6 +132,13 @@ width += (2 * TEXT_OFFSET)
 
 
 ## Classes
+
+### Method/variable naming
+#### Rule
+Please use `names_like_this()` for public methods and variables.  If your thing
+shouldn't be used by just anyone, hint at this by prefixing your method with an
+underscore.  DO NOT use two underscores, as that does weird name mangling stuff
+internally that is undesirable.
 
 ### Method order
 #### Rule

@@ -1,4 +1,8 @@
 # Life of a Feature
+This document aims to describe the ideal process of converting an idea into
+code merged into the repo.  This document is intended for anyone who wants a
+simple guide to follow for getting their code submitted and attempts to follow
+the currently popular methods for doing so.
 
 ## Starting a Feature
 A feature can start in one of two ways: as an issue or as a pull request.
@@ -14,7 +18,8 @@ If you have an idea for a feature and want to work on it, do the following:
 
   1. Fork the spade repo
   2. Create a new feature branch: `git checkout -b feature/<branch name>` in
-     your newly-forked repo.
+     your newly-forked repo.  As an aside, check out [branching][4] for more
+     info on this project's branching strategy.
   3. Open a pull request in the upstream spade repo with the prefix `[wip]`.
 
 This will allow developers and reviewers to see that a feature is being worked
@@ -60,9 +65,12 @@ Spade also requies that feature code and usage be documented.  Check out the
 
 ## Submitting a Feature
 Once your contribution is ready to ship, remove the `[wip]` marker from your
-title and [request a contributor to review it][3].  Please make sure that pylint
-doesn't complain about anything and all of the tests pass.
+title and [request a maintainer to review it][3].  Please make sure that pylint
+doesn't complain about anything and all of the tests pass.  Once your code has
+been reviewed and all issues have been fixed, your work will be merged.  Thanks
+for your help!
 
 [1]: docs/dev/styleguide.md
 [2]: docs/dev/documenting_code.md
 [3]: https://github.com/blog/2291-introducing-review-requests
+[4]: docs/dev/documenting_code.md

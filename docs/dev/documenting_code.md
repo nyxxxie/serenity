@@ -14,6 +14,7 @@ Docstrings for methods should describe that method's purpose, arguments, and
 return value at minimum.  A good rule of thumb to follow is that a user should
 know when and how to use a method simply by looking at its signature and
 docstring.  The following is an example of an acceptable dostring:
+
 ```python
     def seek(self, offset: int=0, from_what: int=0) -> int:
         """
@@ -34,12 +35,28 @@ docstring.  The following is an example of an acceptable dostring:
         (beginning of file).
         """
 ```
+Method docstrings are required for all public methods, and optional (but
+encouraged!!) for private ones.  Don't bother documenting class 'builtin'
+methods (e.g. `__init__`).
 
 ### Classes
 Docstrings for classes should describe that class's purpose in the project.  A
 rule of thumb to go by with class docstrings is that a developer should be able
 to know exactly what the class is for and how it is meant to be used by reading
-the docstring by itself.
+the docstring by itself.  The following is an example of an acceptable
+class docstring:
+
+```python
+class Project(object):
+    """Stores the state and data of a Spade session.
+
+    Specifically, a project stores information on files that were opened,
+    templates, and file metadata.  Additionally, any data saved by plugins,
+    analysis, etc is stored in a project.  Projects by default store this data
+    directly on disk in a sqlite database.
+    """
+    ...
+```
 
 [1]:  http://www.sphinx-doc.org
 [2]:  http://www.sphinx-doc.org/en/stable/rest.html
