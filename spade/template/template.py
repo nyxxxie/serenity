@@ -2,61 +2,13 @@ from .ast import Ast, StructDecl, FieldDecl, ArrayDecl
 
 ENTRY_STRUCT = "FILE"
 
+
 class TemplateException(Exception): pass
 class ParsingException(Exception): pass
 
 # When the user edits a template with the gui, they can select and existing
 # struct in place of a type, and can create newstructs using a struct editor
 # in the template editor system (maybe just have another editor).
-
-class TNode():
-    def __init__(self, template, name, parent):
-        self.template = template
-        self.name = name
-        self.parent = parent
-        self.size = 0
-        self.offset = 0
-
-        # Figure out location
-        if parent is not None:
-            self.location = parent.location + "." + name
-        else:
-            self.location = name
-
-class TField(TNode):
-    def __init__(self, template, type, name, parent):
-        super().__init__(template, name, parent)
-        self.type = type
-
-    def __str__(self):
-        return ("%s [type:%s]" % (self.location, self.type))
-
-    def __repr__(self):
-        return self.__str__()
-
-class TArray(TNode):
-    def __init__(self, template, field, size, parent):
-        super().__init__(template, field.name, parent)
-        self.size = size
-        self.field = field
-
-    def __str__(self):
-        return ("%s [type:%s] [size:%i]" % (self.location, self.field.type, self.size))
-
-    def __repr__(self):
-        return self.__str__()
-
-class TStruct(TNode):
-    def __init__(self, template, name, parent=None):
-        super().__init__(template, name, parent)
-        self.fields = []
-
-    def __str__(self):
-        ret = ("%s" % self.location)
-        return ret
-
-    def __repr__(self):
-        return self.__str__()
 
 def pprint_template(node, tab_level=0):
     string = ("\t" * tab_level)
@@ -75,6 +27,60 @@ def pprint_template(node, tab_level=0):
         raise Exception("Unknown type encountered in template")
 
     return string
+
+
+class TNode():
+    def __init__(self, template, name, parent):
+        self.template = template
+        self.name = name
+        self.parent = parent
+        self.size = 0
+        self.offset = 0
+
+        # Figure out location
+        if parent is not None:
+            self.location = parent.location + "." + name
+        else:
+            self.location = name
+
+
+class TField(TNode):
+    def __init__(self, template, type, name, parent):
+        super().__init__(template, name, parent)
+        self.type = type
+
+    def __str__(self):
+        return ("%s [type:%s]" % (self.location, self.type))
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class TArray(TNode):
+    def __init__(self, template, field, size, parent):
+        super().__init__(template, field.name, parent)
+        self.size = size
+        self.field = field
+
+    def __str__(self):
+        return ("%s [type:%s] [size:%i]" % (self.location, self.field.type, self.size))
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class TStruct(TNode):
+    def __init__(self, template, name, parent=None):
+        super().__init__(template, name, parent)
+        self.fields = []
+
+    def __str__(self):
+        ret = ("%s" % self.location)
+        return ret
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class Template():
     """ Programatic representation of a template.  Uses AST definitions to
