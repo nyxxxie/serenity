@@ -1,3 +1,4 @@
+from tests.template.parser.fixtures import templatewithstructs
 from spade.template.parser import TemplateParser
 from spade.template.ast import Ast, StructDecl, FieldDecl, ArrayDecl
 
@@ -50,11 +51,11 @@ def validate_file(struct):
     # Validate fields
     validate_field(struct.fields[0], "header_t", "header")
 
-def test_parse():
+def test_parse(templatewithstructs):
     # Parse template
     parser = TemplateParser()
     assert parser is not None
-    ast = parser.parse_file("tests/template/templatewithstructs.stf")
+    ast = parser.parse_file(templatewithstructs)
     assert ast is not None
 
     # Do we have all our structs?

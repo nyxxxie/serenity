@@ -1,10 +1,11 @@
+from tests.template.parser.fixtures import basictemplate
 from spade.template.parser import TemplateParser
 
-def test_parse():
+def test_parse(basictemplate):
     # Parse template
     parser = TemplateParser()
     assert parser is not None
-    ast = parser.parse_file("tests/template/basictemplate.stf")
+    ast = parser.parse_file(basictemplate)
     assert ast is not None
 
     # Do we have all our structs?

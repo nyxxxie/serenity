@@ -1,7 +1,8 @@
+from tests.template.parser.fixtures import emptytemplate
 from spade.template.parser import TemplateParser
 
-def test_parse():
+def test_parse(emptytemplate):
     parser = TemplateParser()
     assert parser is not None
-    ast = parser.parse_file("tests/template/emptytemplate.stf")
+    ast = parser.parse_file(emptytemplate)
     assert ast is None
