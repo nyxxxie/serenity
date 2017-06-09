@@ -110,7 +110,7 @@ class SFile(object):
         :type  data: bytes
         :return: Amount of bytes inserted.
         """
-        pass #TODO: implement
+        return NotImplemented
 
     def replace(self, data: bytes) -> int:
         """Replaces bytes in file starting at the current cursor position.
@@ -131,7 +131,7 @@ class SFile(object):
         :type size: int
         :return: Amount of bytes erased.
         """
-        pass #TODO: implement
+        return NotImplemented
 
     def sha256(self) -> bytes:
         """Calculates the sha256 hash of the file.
