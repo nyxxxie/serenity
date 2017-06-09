@@ -1,8 +1,8 @@
 import logging
 import ply.yacc as yacc
-from .template import Template
-from .lexer import create_lexer, tokens, get_location
-from .ast import StructDecl, FieldDecl, ArrayDecl, Ast
+from spade.template.template import Template
+from spade.template.lexer import create_lexer, tokens, get_location
+from spade.template.ast import StructDecl, FieldDecl, ArrayDecl, Ast
 
 logging.basicConfig(
     level = logging.DEBUG,
