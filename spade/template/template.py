@@ -83,7 +83,7 @@ class TStruct(TNode):
         return self.__str__()
 
 
-class Template():
+class Template(object):
     """Programatic representation of a template.
 
     Uses AST definitions to generate a workable template that is ready to

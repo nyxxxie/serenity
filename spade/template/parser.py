@@ -12,7 +12,7 @@ logging.basicConfig(
 
 class TemplateParserException(Exception): pass
 
-class TemplateParser():
+class TemplateParser(object):
     def __init__(self):
         # yacc requires these be listed here in order for it to work
         self.tokens = tokens
