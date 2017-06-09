@@ -3,6 +3,14 @@ import ply.yacc as yacc
 from spade.template.lexer import create_lexer, tokens, get_location
 from spade.template.ast import StructDecl, FieldDecl, ArrayDecl, Ast
 
+# Disabling unused-argument because it's triggering for lexer methods that
+# require a parameter be present, even if it isn't used.
+# Also disabling the no-self-use check because it triggers for some reason
+# on yacc methods.  Unsure as to why this is, but I think it's due to yacc
+# being weird and it doesn't appear to affect anything relating to the
+# execution of this program.
+# pylint: disable=invalid-name,no-self-use
+
 logging.basicConfig(
     level = logging.DEBUG,
     filename = "log.txt",
@@ -26,22 +34,6 @@ class TemplateParser(object):
             write_tables=False,
             debug=True,
             debuglog=log)
-
-    def __repr__(self):
-        return str(self.ast)
-
-    def __str__(self):
-        return self.__repr__()
-
-    def parse_string(self, text):
-        return self.parser.parse(text, lexer=create_lexer())
-        #return Template(ast)
-
-    def parse_file(self, f):
-        with open(f, "r") as f:
-            return self.parse_string(f.read())
-
-        return None
 
     def p_ast(self, p):
         """ ast : declaration_list """
@@ -96,6 +88,18 @@ class TemplateParser(object):
     def p_error(self, p):
         if p:
             line, col = get_location(p)
-            print("Parsing error at line:%i, col:%i - Unexpected token \"%s\"" % (line, col, p.type))
+            print(("Parsing error at line:{}, col:{} - Unexpected token "
+                    "\"{}\"").format(line, col, p.type))
         else:
             print("Syntax error at EOF")
+
+    @classmethod
+    def parse_string(cls, text):
+        return cls().parser.parse(text, lexer=create_lexer())
+
+    @classmethod
+    def parse_file(cls, filename):
+        with open(filename, "r") as f:
+            return cls.parse_string(f.read())
+
+        return None

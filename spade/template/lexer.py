@@ -1,5 +1,11 @@
 import ply.lex as lex
 
+# Disabling the invalid-name option because the naming style of the various
+# token regex constants below are mandated by lex and shouldn't be flag.
+# Disabling unused-argument because it's triggering for tokenizer methods that
+# require a parameter be present, even if it isn't used.
+# pylint: disable=invalid-name,unused-argument
+
 # Token names
 tokens = [
    'NUMBER',
@@ -90,7 +96,8 @@ def get_location(t):
 # Error handling rule
 def t_error(t):
     line, col = get_location(t)
-    print("Illegal character '%s' at [line:%i, col:%i]" % (t.value[0], line, col))
+    print("Illegal character '{}' at [line:{}, col:{}]".format(
+            t.value[0], line, col))
     t.lexer.skip(1) # TODO: break parsing here
 
 def create_lexer():
