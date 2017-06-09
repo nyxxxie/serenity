@@ -1,6 +1,5 @@
 import logging
 import ply.yacc as yacc
-from spade.template.template import Template
 from spade.template.lexer import create_lexer, tokens, get_location
 from spade.template.ast import StructDecl, FieldDecl, ArrayDecl, Ast
 
@@ -13,6 +12,8 @@ logging.basicConfig(
 class TemplateParserException(Exception): pass
 
 class TemplateParser(object):
+    """Parses template files."""
+
     def __init__(self):
         # yacc requires these be listed here in order for it to work
         self.tokens = tokens
