@@ -6,6 +6,8 @@ from spade.template import TRoot, TField, TStruct, ENTRY_STRUCT
 # don't break tests.  Saving it to a var here to save screen space later...
 ENTRY = ENTRY_STRUCT
 
+#TODO: make a separate set of tests for TField, TArray, etc
+
 def test_root_properties(node_tree):
     root = node_tree  # Lets make it 100% clear that this fixture = root
     assert root  # Make sure root isn't None
