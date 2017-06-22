@@ -125,11 +125,6 @@ class TStruct(TNode):
                 # If we haven't continue the search
                 return field.field(next_node)
 
-        # Otherwise, lets try and find the next path
-        for field in node.fields:
-            if field.name == cur_node:
-                return field.field(next_node)
-
         # We found nothing :c
         return None
 
