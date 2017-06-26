@@ -1,8 +1,10 @@
 import os
 import pytest
 from spade import template
+from spade.typesystem.types import int32
 
 RELATIVE_DIR = os.path.dirname(os.path.realpath(__file__))
+
 
 @pytest.fixture()
 def node_tree():
@@ -30,16 +32,16 @@ def node_tree():
 
     root = template.TRoot()
 
-    root.fields.append(template.TField(None, "field1", root, root))
-    root.fields.append(template.TField(None, "field2", root, root))
+    root.fields.append(template.TField(int32.Int32, "field1", 0, root, root))
+    root.fields.append(template.TField(int32.Int32, "field2", 4, root, root))
 
-    header = template.TStruct("header", root, root)
-    header.fields.append(template.TField(None, "data", header, root))
+    header = template.TStruct("header", 8, root, root)
+    header.fields.append(template.TField(int32.Int32, "data", 8, header, root))
     root.fields.append(header)
 
-    thing = template.TStruct("thing", root, root)
-    idk = template.TStruct("idk", thing, root)
-    idk.fields.append(template.TField(None, "f", idk, root))
+    thing = template.TStruct("thing", 12, root, root)
+    idk = template.TStruct("idk", 12, thing, root)
+    idk.fields.append(template.TField(int32.Int32, "f", 12, idk, root))
     thing.fields.append(idk)
     root.fields.append(thing)
 
