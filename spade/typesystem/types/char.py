@@ -4,8 +4,10 @@ from spade.typesystem.typedef import TypeDef, SpadeTypeException
 class Char(TypeDef):
     __typenames__ = ["char", "c"]
 
+    size = 1
+
     def __init__(self, data=None):
-        super().__init__(data, 1)
+        super().__init__(data)
 
     def to_string(self, data) -> str:
         if not data:
@@ -33,7 +35,7 @@ class Char(TypeDef):
         return not self.printable()
 
     def printable(self):
-        if self.size() == 0 or not self.bytes():
+        if self.size == 0 or not self.bytes():
             return False
 
         for char in self.bytes():

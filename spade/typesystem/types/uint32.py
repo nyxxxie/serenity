@@ -5,6 +5,8 @@ from spade.typesystem.typedef import TypeDef, SpadeTypeException
 class UInt32(TypeDef):
     __typenames__ = ["uint32", "uint", "ui32", "ui32le"]
 
+    size = 4
+
     def __init__(self, data=None):
         super().__init__(data, 4)
 

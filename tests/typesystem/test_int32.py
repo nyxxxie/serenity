@@ -7,37 +7,37 @@ from spade.typesystem.types.int32 import Int32
 # ---------------------------
 def test_init():
     int32 = Int32()
-    assert int32.size() == 4
+    assert int32.size == 4
     assert int32.string() is None
     assert int32.bytes() is None
 
 def test_none():
     int32 = Int32()
-    assert int32.size() == 4
+    assert int32.size == 4
     assert int32.string() is None
     assert int32.bytes() is None
 
 def test_empty_bytes():
     int32 = Int32(bytes([]))
-    assert int32.size() == 4
+    assert int32.size == 4
     assert int32.string() is None
     assert int32.bytes() is None
 
 def test_empty_string():
     int32 = Int32("")
-    assert int32.size() == 4
+    assert int32.size == 4
     assert int32.string() is None
     assert int32.bytes() is None
 
 def test_too_few_bytes():
     int32 = Int32(bytes([0x13, 0x37]))
-    assert int32.size() == 4
+    assert int32.size == 4
     assert int32.string() is None
     assert int32.bytes() is None
 
 def test_too_many_bytes():
     int32 = Int32(bytes([0x00, 0x00, 0x00, 0x01, 0x00]))
-    assert int32.size() == 4
+    assert int32.size == 4
     assert int32.string() is None
     assert int32.bytes() is None
     #assert int32.size() == 4

@@ -21,25 +21,25 @@ test_data = [
 # ---------------------------
 def test_init():
     byte = Byte()
-    assert byte.size() == 1
+    assert byte.size == 1
     assert byte.string() is None
     assert byte.bytes() is None
 
 def test_none():
     byte = Byte(None)
-    assert byte.size() == 1
+    assert byte.size == 1
     assert byte.string() is None
     assert byte.bytes() is None
 
 def test_empty_bytes():
     byte = Byte(bytes([]))
-    assert byte.size() == 1
+    assert byte.size == 1
     assert byte.string() is None
     assert byte.bytes() is None
 
 def test_empty_string():
     byte = Byte("")
-    assert byte.size() == 1
+    assert byte.size == 1
     assert byte.string() is None
     assert byte.bytes() is None
 
@@ -49,7 +49,7 @@ def test_empty_string():
 @pytest.mark.parametrize("string,byte", test_data)
 def test_convert_to_byte(string, byte):
     b = Byte(string)
-    assert b.size() == 1
+    assert b.size == 1
     assert b.string() == string.upper()
     assert b.bytes() == bytes([byte])
 
@@ -59,7 +59,7 @@ def test_convert_to_byte(string, byte):
 @pytest.mark.parametrize("string,byte", test_data)
 def test_convert_to_string(string, byte):
     b = Byte(bytes([byte]))
-    assert b.size() == 1
+    assert b.size == 1
     assert b.string() == string.upper()
     assert b.bytes() == bytes([byte])
 

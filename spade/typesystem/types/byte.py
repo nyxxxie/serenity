@@ -4,6 +4,8 @@ from spade.typesystem.typedef import TypeDef, SpadeTypeException
 class Byte(TypeDef):
     __typenames__ = ["byte", "b"]
 
+    size = 1
+
     def __init__(self, data=None):
         super().__init__(data, 1)
 

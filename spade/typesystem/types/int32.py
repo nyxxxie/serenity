@@ -5,15 +5,17 @@ from spade.typesystem.typedef import TypeDef, SpadeTypeException
 class Int32(TypeDef):
     __typenames__ = ["int32", "int", "i32", "i32le"]
 
+    size = 4
+
     def __init__(self, data=None):
-        super().__init__(data, 4)
+        super().__init__(data)
 
     def to_string(self, data) -> str:
         if not data:
             return None
 
         if isinstance(data, bytes):
-            if len(data) != 4:
+            if len(data) != self.size:
                 return None
             try:
                 data_bytes = struct.unpack('>i', data)
