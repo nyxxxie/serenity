@@ -1,0 +1,5 @@
+struct FILE {
+    char magic;
+    int version;
+    int size;
+};
