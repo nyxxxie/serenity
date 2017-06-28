@@ -32,16 +32,16 @@ def node_tree():
 
     root = template.TRoot()
 
-    root.fields.append(template.TField(int32.Int32, "field1", 0, root, root))
-    root.fields.append(template.TField(int32.Int32, "field2", 4, root, root))
+    root.fields.append(template.TField(int32.Int32, "field1", root, root, 0))
+    root.fields.append(template.TField(int32.Int32, "field2", root, root, 4))
 
-    header = template.TStruct("header", 8, root, root)
-    header.fields.append(template.TField(int32.Int32, "data", 8, header, root))
+    header = template.TStruct("header", root, root, 8)
+    header.fields.append(template.TField(int32.Int32, "data", header, root, 8))
     root.fields.append(header)
 
-    thing = template.TStruct("thing", 12, root, root)
-    idk = template.TStruct("idk", 12, thing, root)
-    idk.fields.append(template.TField(int32.Int32, "f", 12, idk, root))
+    thing = template.TStruct("thing", root, root, 12)
+    idk = template.TStruct("idk", thing, root, 12)
+    idk.fields.append(template.TField(int32.Int32, "f", idk, root, 12))
     thing.fields.append(idk)
     root.fields.append(thing)
 

@@ -11,7 +11,7 @@ class SpadeTemplateException(Exception): pass
 class TNode(object):
     """Superclass for all nodes in a template.  Don't use this directly."""
 
-    def __init__(self, name, offset, parent, root):
+    def __init__(self, name, parent, root, offset=0):
         self.name = name
         self.parent = parent
         self.root = root
@@ -35,17 +35,18 @@ class TNode(object):
 class TField(TNode):
     """Represents a field in a struct node."""
 
-    def __init__(self, typedef, name, offset, parent, root, data=None):
-        super().__init__(name, offset, parent, root)
+    def __init__(self, typedef, name, parent, root, offset=0):
+        super().__init__(name, parent, root, offset)
         self.typedef = typedef
-        self.data = data
+        self.data = None
 
     def __str__(self):
         return "{} [type:{}]".format(self.location, self.type)
 
     def refresh_data(self, file_, offset=None):
-        #TODO: expand this out to make it so we can call this on the root and
-        #      have it update all games
+
+        # TODO: make this handle EOF properly
+
         if offset:
             self.offset = offset
 
@@ -54,6 +55,18 @@ class TField(TNode):
 
         self.data = self.typedef(data)
         self.size = self.data.size
+
+    def string(self):
+        if not self.data:
+            return None
+
+        return self.data.string()
+
+    def bytes(self):
+        if not self.data:
+            return None
+
+        return self.data.bytes()
 
 #class TArray(TNode):
 #    """Represents an array node."""
@@ -70,13 +83,23 @@ class TField(TNode):
 class TStruct(TNode):
     """Represents a struct node."""
 
-    def __init__(self, name, offset, parent, root):
-        super().__init__(name, offset, parent, root)
+    def __init__(self, name, parent, root, offset=0):
+        super().__init__(name, parent, root, offset)
         self.fields = []
 
     def __str__(self):
         ret = ("%s" % self.location)
         return ret
+
+    def refresh_data(self, file_, offset=0):
+
+        self.offset = offset
+        self.size = 0
+
+        for field in self.fields:
+            field.refresh_data(file_, offset)
+            offset += field.size
+            self.size += field.size
 
     def field(self, location: str):
         """Gets an element relative to this element or root.
@@ -151,7 +174,7 @@ class TRoot(TStruct):
     """Represents the root of a template tree."""
 
     def __init__(self):
-        super().__init__(ENTRY_STRUCT, 0, None, self)
+        super().__init__(ENTRY_STRUCT, None, self)
 
     def __str__(self):
         return pprint()
@@ -189,7 +212,7 @@ class TRoot(TStruct):
 #    #    field = _process_field(ast, file, field_def, array)
 #    return array
 
-def _process_field(target_file, offset, field_def, parent):
+def _process_field(field_def, parent):
     """Turns an AST field definition into a field template node.
 
     This function will fetch this field's type from the typemanager, and if the
@@ -205,15 +228,9 @@ def _process_field(target_file, offset, field_def, parent):
                 "\"{}\".").format(type_name, parent.location + "." +
                 field_def.name))
 
+    return TField(Type, field_def.name, parent, parent.root)
 
-    # TODO: integrate this with Project file thing, dont read direct
-
-    field = TField(Type, field_def.name, offset, parent, parent.root)
-    field.refresh_data(target_file)
-
-    return field
-
-def _process_struct(target_file, offset, struct_def, parent=None):
+def _process_struct(struct_def, parent=None):
     """Processes an AST struct definition into a TStruct.
 
     Will recursively process all child structs, so calling this function on the
@@ -225,26 +242,23 @@ def _process_struct(target_file, offset, struct_def, parent=None):
     if struct_def.name == ENTRY_STRUCT:
         struct = TRoot()
     else:
-        struct = TStruct(struct_def.name, offset, parent, parent.root)
+        struct = TStruct(struct_def.name, parent, parent.root)
 
     logging.debug("Processing struct: {}".format(struct.location))
 
     # Populate each struct field
     for field_def in struct_def.fields:
         if isinstance(field_def, StructDecl):
-            node = _process_struct(target_file, offset, field_def, struct)
+            node = _process_struct(field_def, struct)
         elif isinstance(field_def, FieldDecl):
-            node = _process_field(target_file, offset, field_def, struct)
+            node = _process_field(field_def, struct)
         #elif isinstance(field, ArrayDecl):
         #    return NotImplemented
         else:
             raise SpadeTemplateException(("Invalid ast def encountered during "
                     "parse: {}").format(type(field)))
 
-        offset += node.size
         struct.fields.append(node)
-
-    struct.size = offset  # At the end of the loop, offset is the same as size
 
     return struct
 
@@ -255,7 +269,9 @@ def _process_root(target_file, root_def):
     """
 
     logging.debug("Processing root node.")
-    return _process_struct(target_file, 0, root_def)
+    root = _process_struct(root_def)
+    root.refresh_data(target_file, 0)
+    return root
 
 def from_ast(ast, target_file: str):
     """Transforms a target + a parsed AST file into a workable template.
@@ -274,6 +290,7 @@ def from_ast(ast, target_file: str):
 
     # Process entry point struct
     with open(target_file, "rb") as f:
+        # TODO: integrate this with Project file thing, dont read direct
         return _process_root(f, struct_def)
 
     logging.error("open() with statement dropped out for some reason.")
