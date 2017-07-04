@@ -1,3 +1,4 @@
+from PyQt5 import QtCore
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtconsole.inprocess import QtInProcessKernelManager
 
@@ -21,3 +22,8 @@ class ConsoleWidget(RichJupyterWidget):
 
         self.kernel_manager = kernel_manager
         self.kernel_client = kernel_client
+
+
+    def sizeHint(self):
+        """Overloading this so it doesn't appear huge in the qdockwidget."""
+        return QtCore.QSize(300, 75)
