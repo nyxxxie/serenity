@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QAction, QDesktopWidget, QMainWindow, QDockWidget, QTextEdit, qApp
+from PyQt5.QtWidgets import QAction, QDesktopWidget, QMainWindow, QDockWidget, QTextEdit, qApp, QSizePolicy
 from client.editorwidget import EditorWidget
 from client.consolewidget import ConsoleWidget
 
@@ -49,7 +49,7 @@ class SpadeMainWindow(QMainWindow):
 
     def _create_projectview(self):
         """Spawn projectview."""
-        self.dock_projectview = QDockWidget()
+        self.dock_projectview = QDockWidget("Project")
         self.dock_projectview.setAllowedAreas(Qt.LeftDockWidgetArea
                 | Qt.RightDockWidgetArea)
         self.dock_projectview.setWidget(QTextEdit())
@@ -57,16 +57,18 @@ class SpadeMainWindow(QMainWindow):
 
     def _create_templateview(self):
         """Spawn templateview."""
-        self.dock_templateview = QDockWidget()
+        self.dock_templateview = QDockWidget("Template")
         self.dock_templateview.setAllowedAreas(Qt.LeftDockWidgetArea
                 | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)
         self.dock_templateview.setWidget(QTextEdit())
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_templateview)
 
     def _create_consolewidget(self):
-        """Spawn consoleview."""
-        self.dock_templateview = QDockWidget()
-        self.dock_templateview.setAllowedAreas(Qt.BottomDockWidgetArea)
+        """Spawn console widget."""
+        self.dock_console = QDockWidget("REPL")
+        self.dock_console.setSizePolicy(QSizePolicy.Expanding,
+                QSizePolicy.Ignored)
+        self.dock_console.setAllowedAreas(Qt.BottomDockWidgetArea)
         console = ConsoleWidget()
-        self.dock_templateview.setWidget(console)
-        self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_templateview)
+        self.dock_console.setWidget(console)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_console)
