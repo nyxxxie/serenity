@@ -1,6 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QAction, QDesktopWidget, QMainWindow, QDockWidget, QTextEdit, qApp
 from client.editorwidget import EditorWidget
+from client.consolewidget import ConsoleWidget
 
 # https://github.com/baoboa/pyqt5/blob/master/examples/mainwindows/dockwidgets/dockwidgets.py
 # http://zetcode.com/gui/pyqt5/firstprograms/
@@ -14,6 +15,7 @@ class SpadeMainWindow(QMainWindow):
         self._create_central_widget()
         self._create_projectview()
         self._create_templateview()
+        self._create_consolewidget()
 
     def center(self):
         """Place the window in the center of the screen."""
@@ -59,4 +61,12 @@ class SpadeMainWindow(QMainWindow):
         self.dock_templateview.setAllowedAreas(Qt.LeftDockWidgetArea
                 | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)
         self.dock_templateview.setWidget(QTextEdit())
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_templateview)
+
+    def _create_consolewidget(self):
+        """Spawn consoleview."""
+        self.dock_templateview = QDockWidget()
+        self.dock_templateview.setAllowedAreas(Qt.BottomDockWidgetArea)
+        console = ConsoleWidget()
+        self.dock_templateview.setWidget(console)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_templateview)

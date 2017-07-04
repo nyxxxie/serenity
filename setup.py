@@ -21,8 +21,9 @@ setup(
         'sqlalchemy',
         'Sphinx',
         'ply',
-        'pytest'
-        'pytest-cov'
+        'pytest',
+        'pytest-cov',
+        'qtconsole'
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
