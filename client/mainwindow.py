@@ -1,6 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QAction, QDesktopWidget, QMainWindow, QDockWidget, QTextEdit, qApp, QSizePolicy
 from client.editorwidget import EditorWidget
+from client.templatewidget import TemplateWidget
 from client.consolewidget import ConsoleWidget
 
 # https://github.com/baoboa/pyqt5/blob/master/examples/mainwindows/dockwidgets/dockwidgets.py
@@ -60,7 +61,7 @@ class SpadeMainWindow(QMainWindow):
         self.dock_templateview = QDockWidget("Template")
         self.dock_templateview.setAllowedAreas(Qt.LeftDockWidgetArea
                 | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)
-        self.dock_templateview.setWidget(QTextEdit())
+        self.dock_templateview.setWidget(TemplateWidget())
         self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_templateview)
 
     def _create_consolewidget(self):
