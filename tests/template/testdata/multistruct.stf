@@ -1,0 +1,19 @@
+struct data_t {
+    int hungry;
+};
+
+struct header_t {
+    char blah0;
+    char blah1;
+    char blah2;
+    char blah3;
+    int another_thing;
+    uint32 so_many_things;
+    data_t data;
+};
+
+struct FILE {
+    header_t header;
+    int GUN;
+    int ramen_4_me;
+};
