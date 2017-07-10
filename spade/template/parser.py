@@ -17,7 +17,11 @@ logging.basicConfig(
     filemode = "w",
     format = "%(filename)10s:%(lineno)4d:%(message)s")
 
-class TemplateParserException(Exception): pass
+class TemplateParserException(Exception):
+    """Raised when an issue is encountered parsing a template file."""
+
+    pass
+
 
 class TemplateParser(object):
     """Parses template files."""
