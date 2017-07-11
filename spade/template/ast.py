@@ -14,20 +14,16 @@ class AstBody(object):
     use it whenever you use curly braces in a template file.
     """
 
-    def __init__(self):
+    def __init__(self, decl_list):
         self._parent = None
         self._struct_decls = []
         self._const_decls = []
         self._entry = None
 
+        # TODO: process decl list
+
     def set_parent(self, parent_body):
         self._parent = parent_body
-
-    def add_struct(self, decl):
-        self._struct_decls.append(decl)
-
-    def add_const(self, decl):
-        self._const_decls.append(decl)
 
     def find_symbol(self, name):
         """Tries to locate a symbol declaration in scope."""
@@ -52,8 +48,8 @@ class AstBody(object):
 class AstRoot(AstBody):
     """Root of the AST tree."""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, decl_list):
+        super().__init__(decl_list)
 
 
 class AstDeclaration(object):
@@ -81,13 +77,12 @@ class AstArrayDeclaration(AstConstDeclaration):
 class AstStructDefinition(AstBody):
     """Defines a structured contiguous sequence of data in a file."""
 
-    def __init__(self, name):
-        super().__init__()
+    def __init__(self, decl_list, field_list):
+        super().__init__(decl_list)
         self._name = name
         self._fields = []
 
-    def add_field(self, field):
-        self._fields.append(field)
+        # TODO: process field list
 
 
 class AstStructField(AstDeclaration):
