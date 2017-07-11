@@ -52,12 +52,14 @@ def is_type(t):
 
     return False
 
+def t_TYPE(t):
+    r'[a-zA-Z_-][a-zA-Z0-9_-]*'
+    return t
+
 def t_NAME(t):
-    r'[a-zA-Z][a-zA-Z0-9_\.-]*'
+    r'[a-zA-Z_-][a-zA-Z0-9_-]*'
     if t.value in keywords:
         t.type = keywords[t.value]
-    #if is_type(t.value):
-    #    t.type = "TYPE"
     return t
 
 def t_COMMENT(t):
