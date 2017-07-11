@@ -62,7 +62,7 @@ class TStruct(TNode):
         super().__init__(root, parent)
         self.fields = []
 
-    def add_field(self, field)
+    def add_field(self, field):
         self.append(field)
 
 
