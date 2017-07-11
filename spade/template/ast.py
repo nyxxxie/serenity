@@ -8,42 +8,45 @@ intermediate form.
 """
 
 class AstBody(object):
-    """Base class for any AST element that sould act as a "body".
+    """Base class for any AST element that requires "body" properties.
 
-    A "body" is a 
+    We define "body" as a new scope for declarations.  A good rule of thumb is to
+    use it whenever you use curly braces in a template file.
     """
 
-    def __init__(self, parent_body=None):
-        self.parent = parent_body
-        self.struct_decls = []
-        self.const_decls = []
-        self.entry = None
+    def __init__(self):
+        self._parent = None
+        self._struct_decls = []
+        self._const_decls = []
+        self._entry = None
+
+    def set_parent(self, parent_body):
+        self._parent = parent_body
+
+    def add_struct(self, decl):
+        self._struct_decls.append(decl)
+
+    def add_const(self, decl):
+        self._const_decls.append(decl)
 
     def find_symbol(self, name):
         """Tries to locate a symbol declaration in scope."""
         # Search constants
-        for const_decl in self.const_decls:
+        for const_decl in self._const_decls:
             if struct_decl.name == name:
                 return struct_decl
 
         # Search structs
-        for struct_decl in self.struct_decls:
+        for struct_decl in self._struct_decls:
             if struct_decl.name == name:
                 return struct_decl
 
         # If there's a parent, try them
-        if self.parent:
-            return self.parent.find_symbol(name)
+        if self._parent:
+            return self._parent.find_symbol(name)
 
         # No symbol found
         return None
-
-
-class AstDeclaration(object):
-    """Base class for any AST declarations."""
-
-    def __init__(self, type_, name, parent_body):
-        pass
 
 
 class AstRoot(AstBody):
@@ -53,26 +56,38 @@ class AstRoot(AstBody):
         super().__init__()
 
 
+class AstDeclaration(object):
+    """Base class for any AST declarations."""
+
+    def __init__(self, type_, name):
+        self._type = type_
+        self._name = name
+
+
 class AstConstDeclaration(AstDeclaration):
     """Declaration of a constant value."""
 
-    def __init__(self, type_, name, parent_body):
-        super().__init__(type_, name, parent)
+    def __init__(self, type_, name):
+        super().__init__(type_, name)
 
 
 class AstArrayDeclaration(AstConstDeclaration):
     """Declaration of a constant array."""
 
-    def __init__(self, type_, name, size, parent_body):
-        super().__init__(type_, name, parent)
+    def __init__(self, type_, name, size):
+        super().__init__(type_, name)
 
 
 class AstStructDefinition(AstBody):
     """Defines a structured contiguous sequence of data in a file."""
 
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.fields = []
+    def __init__(self, name):
+        super().__init__()
+        self._name = name
+        self._fields = []
+
+    def add_field(self, field):
+        self._fields.append(field)
 
 
 class AstStructField(AstDeclaration):
@@ -82,8 +97,8 @@ class AstStructField(AstDeclaration):
     body of a struct.
     """
 
-    def __init__(self, type_, name, parent_struct)
-        super().__init__(type_, name, parent_struct)
+    def __init__(self, type_, name):
+        super().__init__(type_, name)
 
 
 class AstStructValueField(AstStructField):
@@ -93,8 +108,8 @@ class AstStructValueField(AstStructField):
     spade's typesystem or may be a struct defined in scope of the field.
     """
 
-    def __init__(self, type_, name, parent_struct)
-        super().__init__(type_, name, parent_struct)
+    def __init__(self, type_, name):
+        super().__init__(type_, name)
 
 
 class AstStructArrayField(AstStructValueField):
@@ -105,5 +120,6 @@ class AstStructArrayField(AstStructValueField):
     should determine the size at runtime.
     """
 
-    def __init__(self, type_, name, size, parent_struct)
-        super().__init__(type_, name, size, parent_struct)
+    def __init__(self, type_, name, size):
+        super().__init__(type_, name)
+        self._size = size

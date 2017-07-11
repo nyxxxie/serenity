@@ -1,7 +1,7 @@
 import logging
 import ply.yacc as yacc
-from spade.template.lexer import create_lexer, tokens, get_location
-from spade.template.ast import StructDecl, FieldDecl, ArrayDecl, Ast
+from spade.template import ast
+from spade.template import lexer
 
 # Disabling unused-argument because it's triggering for lexer methods that
 # require a parameter be present, even if it isn't used.
@@ -10,12 +10,6 @@ from spade.template.ast import StructDecl, FieldDecl, ArrayDecl, Ast
 # being weird and it doesn't appear to affect anything relating to the
 # execution of this program.
 # pylint: disable=invalid-name,no-self-use
-
-logging.basicConfig(
-    level = logging.DEBUG,
-    filename = "log.txt",
-    filemode = "w",
-    format = "%(filename)10s:%(lineno)4d:%(message)s")
 
 class TemplateParserException(Exception):
     """Raised when an issue is encountered parsing a template file."""
@@ -28,24 +22,37 @@ class TemplateParser(object):
 
     def __init__(self):
         # yacc requires these be listed here in order for it to work
-        self.tokens = tokens
+        self.tokens = lexer.tokens
 
         # Create yacc with logging enabled
-        log = logging.getLogger()
         self.parser = yacc.yacc(
             module=self,
             start='ast',
             write_tables=False,
             debug=True,
-            debuglog=log)
+            debuglog=logging.getLogger())
 
     def p_ast(self, p):
-        """ ast : declaration_list """
-        p[0] = Ast(p[1])
+        """ ast : body_declarations
+        """
+        root = ast.AstRoot()
 
-    def p_declaration_list(self, p):
-        """ declaration_list : declaration
-                             | declaration_list declaration
+        # Process each declaration in the declaration list
+        for decl in p[1]:
+            if isinstance(ast.AstStructDefinition, decl):
+                root.add_struct(decl)
+                decl.set_parent(root)
+            #elif isinstance(ast.AstConstDefinition, decl):
+            #    root.add_const(decl)
+            else:
+                raise TemplateParserException("Encountered unexpected "
+                        "declaration type \"{}\".".format(type(decl)))
+
+        p[0] = root
+
+    def p_body_declarations(self, p):
+        """ body_declarations : declaration
+                              | body_declarations declaration
         """
         p[0] = []
         if len(p) == 2:        # First option (declaration)
@@ -55,13 +62,20 @@ class TemplateParser(object):
             p[0].append(p[2])  # Add the new declaration to the list
 
     def p_declaration(self, p):
-        """ declaration : struct """
+        """ declaration : struct
+        """
         p[0] = p[1]
 
     def p_struct(self, p):
         """ struct : STRUCT NAME LBRACE struct_field_list RBRACE SEMICOLON
         """
-        p[0] = StructDecl(p[2], p[4])
+        struct = ast.AstStructDefinition(p[2])
+
+        # Add fields to struct
+        for field in p[4]:
+            struct.add_field(field)
+
+        p[0] = struct
 
     def p_struct_field_list(self, p):
         """ struct_field_list : struct_field
@@ -75,23 +89,16 @@ class TemplateParser(object):
             p[0].append(p[2])  # Add the new struct field to the list
 
     def p_struct_field_1(self, p):
-        """ struct_field : NAME NAME SEMICOLON """
-        #""" struct_field : TYPE NAME SEMICOLON """
-        p[0] = FieldDecl(p[1], p[2])
+        """ struct_field : TYPE NAME SEMICOLON """
+        p[0] = ast.AstStructValueField(p[1], p[2])
 
     def p_struct_field_2(self, p):
-        """ struct_field : NAME NAME LBRACKET NUMBER RBRACKET SEMICOLON """
-        #""" struct_field : TYPE NAME LBRACKET NUMBER RBRACKET SEMICOLON """
-        p[0] = ArrayDecl(FieldDecl(p[1], p[2]), p[4])
-
-    #def p_struct_field_3(self, p):
-    #    """ struct_field : NAME NAME LBRACKET NAME RBRACKET SEMICOLON """
-    #    #""" struct_field : TYPE NAME LBRACKET NAME RBRACKET SEMICOLON """
-    #    p[0] = ArrayDecl(FieldDecl(p[1], p[2]), p[4])
+        """ struct_field : TYPE NAME LBRACKET NUMBER RBRACKET SEMICOLON """
+        p[0] = ast.AstStructArrayField(p[1], p[2], p[4])
 
     def p_error(self, p):
         if p:
-            line, col = get_location(p)
+            line, col = lexer.get_location(p)
             print(("Parsing error at line:{}, col:{} - Unexpected token "
                     "\"{}\"").format(line, col, p.type))
         else:
@@ -99,7 +106,7 @@ class TemplateParser(object):
 
     @classmethod
     def parse_string(cls, text):
-        return cls().parser.parse(text, lexer=create_lexer())
+        return cls().parser.parse(text, lexer=lexer.create_lexer())
 
     @classmethod
     def parse_file(cls, filename):
