@@ -8,24 +8,29 @@ import ply.lex as lex
 
 # Token names
 tokens = [
-   'NUMBER',
-   'NAME',
-   'TYPE',
-   'STRING',
-   'COMMENT',
-   'BCOMMENT',
-   'LBRACE',
-   'RBRACE',
-   'LPAREN',
-   'RPAREN',
-   'LBRACKET',
-   'RBRACKET',
-   'SEMICOLON',
+    'NUMBER',
+    'NAME',
+    'STRING',
+    'COMMENT',
+    'BCOMMENT',
+    'PLUS',
+    'MINUS',
+    'DIVIDE',
+    'MULTIPLY',
+    'EQUALS',
+    'LBRACE',
+    'RBRACE',
+    'LPAREN',
+    'RPAREN',
+    'LBRACKET',
+    'RBRACKET',
+    'SEMICOLON',
 ]
 
 # Define specific label keywords
 keywords = {
     'struct':  'STRUCT',
+    'const':   'CONST',
     'include': 'INCLUDE',
     'typedef': 'TYPEDEF',
     'if':      'IF',
@@ -52,10 +57,6 @@ def is_type(t):
 
     return False
 
-def t_TYPE(t):
-    r'[a-zA-Z_-][a-zA-Z0-9_-]*'
-    return t
-
 def t_NAME(t):
     r'[a-zA-Z_-][a-zA-Z0-9_-]*'
     if t.value in keywords:
@@ -72,6 +73,11 @@ def t_BCOMMENT(t):
 
 # Some regex rules for simple tokens
 t_STRING    = r'\"([^\\\n]|(\\.))*?\"'
+t_PLUS      = r'\+'
+t_MINUS     = r'\-'
+t_DIVIDE    = r'\/'
+t_MULTIPLY  = r'\*'
+t_EQUALS    = r'\)'
 t_LBRACE    = r'\{'
 t_RBRACE    = r'\}'
 t_LPAREN    = r'\('

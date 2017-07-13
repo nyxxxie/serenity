@@ -7,6 +7,9 @@ seeking to work with spade templates, as they are meant to describe a more
 intermediate form.
 """
 
+import logging
+
+
 class AstBody(object):
     """Base class for any AST element that requires "body" properties.
 
@@ -20,7 +23,13 @@ class AstBody(object):
         self._const_decls = []
         self._entry = None
 
-        # TODO: process decl list
+        for decl in decl_list:
+            if isinstance(decl, AstStructDeclaration):
+                self._struct_decls.append(decl)
+            elif isinstance(decl, AstConstDeclaration):
+                self._const_decls.append(decl)
+            else:
+                logging.warning("Invalid decl type {}.".format(type(decl)))
 
     def set_parent(self, parent_body):
         self._parent = parent_body
@@ -63,26 +72,34 @@ class AstDeclaration(object):
 class AstConstDeclaration(AstDeclaration):
     """Declaration of a constant value."""
 
-    def __init__(self, type_, name):
+    def __init__(self, type_, name, value):
         super().__init__(type_, name)
+        self.value = value
 
 
 class AstArrayDeclaration(AstConstDeclaration):
     """Declaration of a constant array."""
 
-    def __init__(self, type_, name, size):
+    def __init__(self, type_, name, values):
         super().__init__(type_, name)
+        self.values = values
 
 
-class AstStructDefinition(AstBody):
-    """Defines a structured contiguous sequence of data in a file."""
+class AstStructDeclaration(AstBody):
+    """Declares a structured contiguous sequence of data in a file."""
 
-    def __init__(self, decl_list, field_list):
-        super().__init__(decl_list)
+    def __init__(self, name, struct_contents):
         self._name = name
         self._fields = []
 
-        # TODO: process field list
+        # Look for and process field items
+        for item in struct_contents:
+            if isinstance(item, AstStructField):
+                self._fields.append(item)
+
+        # Let base class process declarations.  The list comprehension removes
+        # struct_contents that we've already determined are fields
+        super().__init__([ x for x in struct_contents if x not in self._fields ])
 
 
 class AstStructField(AstDeclaration):

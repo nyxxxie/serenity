@@ -35,47 +35,52 @@ class TemplateParser(object):
     def p_root(self, p):
         """ root : declaration_list
         """
-        pass
+        p[0] = ast.AstRoot(p[1])
 
     def p_declaration_list(self, p):
         """ declaration_list : declaration
                              | declaration declaration_list
         """
-        pass
+        p[0] = [ p[1] ]
+        if len(p) == 3:        # Do we have a third list element?
+            p[0].extend(p[2])  # Add the next set of contents to the list
 
     def p_declaration(self, p):
         """ declaration : declaration_const
                         | declaration_array
                         | declaration_struct
         """
-        pass
+        p[0] = p[1]
 
     def p_declaration_const(self, p):
-        """ declaration_const : CONST TYPE NAME EQUALS static_value
+        """ declaration_const : CONST NAME NAME EQUALS static_value
         """
-        pass
+        p[0] = ast.AstConstDeclaration(p[2], p[3], p[5])
 
     def p_static_value(self, p):
         """ static_value : NUMBER
                          | STRING
         """
-        pass
+        p[0] = p[1]
 
     def p_declaration_array(self, p):
-        """ declaration_array : TYPE NAME LBRACKET RBRACKET EQUALS LBRACE array_value_list RBRACE SEMICOLON
+        """ declaration_array : NAME NAME LBRACKET RBRACKET EQUALS LBRACE array_value_list RBRACE SEMICOLON
         """
-        pass
+        p[0] = ast.AstArrayDeclaration(p[1], p[2], p[7])
 
     def p_array_value_list(self, p):
         """ array_value_list : static_value
                              | static_value array_value_list
         """
-        pass
+        p[0] = [ p[1] ]
+        if len(p) == 3:        # Do we have a third list element?
+            p[0].extend(p[2])  # Add the next set of contents to the list
+
 
     def p_declaration_struct(self, p):
         """ declaration_struct : STRUCT NAME LBRACE struct_contents RBRACE SEMICOLON
         """
-        pass
+        p[0] = ast.AstStructDeclaration(p[2], p[4])
 
     def p_struct_contents(self, p):
         """ struct_contents : struct_field
@@ -83,100 +88,24 @@ class TemplateParser(object):
                             | struct_field struct_contents
                             | declaration struct_contents
         """
-        p[0] = []
-        if len(p) == 2:        # Only 2 fields means we're at a terminal
-            p[0].append(p[1])  # Add the new declaration to the list
-        else:                  # Other option means we're continuing the list
-            p[0].extend(p[2])  # Add the existing list to the new list
-            p[0] += p[1]       # Add the new item to the new list
+        p[0] = [ p[1] ]
+        if len(p) == 3:        # Do we have a third list element?
+            p[0].extend(p[2])  # Add the next set of contents to the list
 
     def p_struct_field_1(self, p):
-        """ struct_field : TYPE NAME SEMICOLON """
+        """ struct_field : NAME NAME SEMICOLON """
         p[0] = ast.AstStructValueField(p[1], p[2])
 
     def p_struct_field_2(self, p):
-        """ struct_field : TYPE NAME LBRACKET NUMBER RBRACKET SEMICOLON
-                         | TYPE NAME LBRACKET NAME RBRACKET SEMICOLON
+        """ struct_field : NAME NAME LBRACKET NUMBER RBRACKET SEMICOLON
+                         | NAME NAME LBRACKET NAME RBRACKET SEMICOLON
         """
         p[0] = ast.AstStructArrayField(p[1], p[2], p[4])
 
-
-
-    # TODO: IMPLEMENT THE ABOVE, USE THE BELOW AS REFERENCE
-
-
-
-    #def p_ast(self, p):
-    #    """ ast : body_declarations
-    #    """
-    #    root = ast.AstRoot()
-
-    #    # Process each declaration in the declaration list
-    #    for decl in p[1]:
-    #        if isinstance(ast.AstStructDefinition, decl):
-    #            root.add_struct(decl)
-    #            decl.set_parent(root)
-    #        #elif isinstance(ast.AstConstDefinition, decl):
-    #        #    root.add_const(decl)
-    #        else:
-    #            raise TemplateParserException("Encountered unexpected "
-    #                    "declaration type \"{}\".".format(type(decl)))
-
-    #    p[0] = root
-
-    #def p_body_declarations(self, p):
-    #    """ body_declarations : declaration
-    #                          | body_declarations declaration
-    #    """
-    #    p[0] = []
-    #    if len(p) == 2:        # First option (declaration)
-    #        p[0].append(p[1])  # Add the new declaration to the list
-    #    else:                  # Second option (declaration_list struct_field)
-    #        p[0] += p[1]       # Add the declaration to the overall list
-    #        p[0].append(p[2])  # Add the new declaration to the list
-
-    #def p_declaration(self, p):
-    #    """ declaration : struct
-    #    """
-    #    p[0] = p[1]
-
-    #def p_struct(self, p):
-    #    """ struct : STRUCT NAME LBRACE struct_field_list RBRACE SEMICOLON
-    #    """
-    #    struct = ast.AstStructDefinition(p[2])
-
-    #    # Add fields to struct
-    #    for field in p[4]:
-    #        struct.add_field(field)
-
-    #    p[0] = struct
-
-    #def p_struct_field_list(self, p):
-    #    """ struct_field_list : struct_field
-    #                          | struct_field_list struct_field
-    #    """
-    #    p[0] = []
-    #    if len(p) == 2:        # First option (struct_field)
-    #        p[0].append(p[1])  # Add the new struct field to the list
-    #    else:                  # Second option (struct_field_list struct_field)
-    #        p[0] += p[1]       # Add the struct list to the overall list
-    #        p[0].append(p[2])  # Add the new struct field to the list
-
-    #def p_struct_field_1(self, p):
-    #    """ struct_field : TYPE NAME SEMICOLON """
-    #    p[0] = ast.AstStructValueField(p[1], p[2])
-
-    #def p_struct_field_2(self, p):
-    #    """ struct_field : TYPE NAME LBRACKET NUMBER RBRACKET SEMICOLON """
-    #    p[0] = ast.AstStructArrayField(p[1], p[2], p[4])
-
-    #def p_error(self, p):
-    #    if p:
-    #        line, col = lexer.get_location(p)
-    #        print(("Parsing error at line:{}, col:{} - Unexpected token "
-    #                "\"{}\"").format(line, col, p.type))
-    #    else:
-    #        print("Syntax error at EOF")
+    def p_error(self, p):
+        stack = ' '.join([symbol.type for symbol in self.parser.symstack][1:])
+        print('Syntax error on line {}:'.format(p.lineno))
+        print('\tparser state {} {} . {}'.format(self.parser.state, stack, p))
 
     @classmethod
     def parse_string(cls, text):
