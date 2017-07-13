@@ -1,4 +1,3 @@
-import pytest
 from tests.template.fixtures import multistruct, multistruct_target
 from spade import template
 

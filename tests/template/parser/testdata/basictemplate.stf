@@ -1,5 +1,0 @@
-struct FILE {
-    uint32_t field1;
-    int32_t field2;
-    char field3;
-};
