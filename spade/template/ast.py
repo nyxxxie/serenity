@@ -21,10 +21,10 @@ class AstBody(object):
         self._parent = None
         self._struct_decls = []
         self._const_decls = []
-        self._entry = None
 
         for decl in decl_list:
             if isinstance(decl, AstStructDeclaration):
+                decl._parent = self  # Set this decl's parent body to us
                 self._struct_decls.append(decl)
             elif isinstance(decl, AstConstDeclaration):
                 self._const_decls.append(decl)
@@ -38,12 +38,12 @@ class AstBody(object):
         """Tries to locate a symbol declaration in scope."""
         # Search constants
         for const_decl in self._const_decls:
-            if struct_decl.name == name:
+            if struct_decl._name == name:
                 return struct_decl
 
         # Search structs
         for struct_decl in self._struct_decls:
-            if struct_decl.name == name:
+            if struct_decl._name == name:
                 return struct_decl
 
         # If there's a parent, try them
@@ -74,7 +74,7 @@ class AstConstDeclaration(AstDeclaration):
 
     def __init__(self, type_, name, value):
         super().__init__(type_, name)
-        self.value = value
+        self._value = value
 
 
 class AstArrayDeclaration(AstConstDeclaration):
@@ -82,7 +82,7 @@ class AstArrayDeclaration(AstConstDeclaration):
 
     def __init__(self, type_, name, values):
         super().__init__(type_, name)
-        self.values = values
+        self._values = values
 
 
 class AstStructDeclaration(AstBody):
@@ -101,6 +101,15 @@ class AstStructDeclaration(AstBody):
         # struct_contents that we've already determined are fields
         super().__init__([ x for x in struct_contents if x not in self._fields ])
 
+    def find_symbol(self, name):
+        """Tries to locate a symbol declaration in scope."""
+        for field in self._fields:
+            if field._name == name:
+                return field
+
+        # If the symbol isn't a field, try AstBody's symbols
+        return super().find_symbol(name)
+
 
 class AstStructField(AstDeclaration):
     """Defines a field in a structure.
@@ -111,7 +120,6 @@ class AstStructField(AstDeclaration):
 
     def __init__(self, type_, name):
         super().__init__(type_, name)
-
 
 class AstStructValueField(AstStructField):
     """Defines a struct field that contains a single value entry.
