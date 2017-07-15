@@ -5,11 +5,6 @@ from spade.template import parser
 from spade.template import ast
 
 
-def test_parse_file(multistruct1):
-    root = parser.TemplateParser.parse_file(multistruct1)
-    assert root
-    assert not root._parent
-
 @pytest.mark.parametrize("loc,field_amt,struct_amt,const_amt", [
     ("data_t", 1, 0, 0),
     ("header_t", 7, 0, 0),
