@@ -18,37 +18,37 @@ class AstBody(object):
     """
 
     def __init__(self, decl_list):
-        self._parent = None
-        self._struct_decls = []
-        self._const_decls = []
+        self.parent = None
+        self.struct_decls = []
+        self.const_decls = []
 
         for decl in decl_list:
             if isinstance(decl, AstStructDeclaration):
                 decl._parent = self  # Set this decl's parent body to us
-                self._struct_decls.append(decl)
+                self.struct_decls.append(decl)
             elif isinstance(decl, AstConstDeclaration):
-                self._const_decls.append(decl)
+                self.const_decls.append(decl)
             else:
                 logging.warning("Invalid decl type {}.".format(type(decl)))
 
     def set_parent(self, parent_body):
-        self._parent = parent_body
+        self.parent = parent_body
 
     def find_symbol(self, name):
         """Tries to locate a symbol declaration in scope."""
         # Search constants
-        for const_decl in self._const_decls:
+        for const_decl in self.const_decls:
             if struct_decl._name == name:
                 return struct_decl
 
         # Search structs
-        for struct_decl in self._struct_decls:
+        for struct_decl in self.struct_decls:
             if struct_decl._name == name:
                 return struct_decl
 
         # If there's a parent, try them
-        if self._parent:
-            return self._parent.find_symbol(name)
+        if self.parent:
+            return self.parent.find_symbol(name)
 
         # No symbol found
         return None
@@ -64,46 +64,46 @@ class AstRoot(AstBody):
 class AstDeclaration(object):
     """Base class for any AST declarations."""
 
-    def __init__(self, type_, name):
-        self._type = type_
-        self._name = name
+    def __init__(self, typename, name):
+        self.typename = typename
+        self.name = name
 
 
 class AstConstDeclaration(AstDeclaration):
     """Declaration of a constant value."""
 
-    def __init__(self, type_, name, value):
-        super().__init__(type_, name)
-        self._value = value
+    def __init__(self, typename, name, value):
+        super().__init__(typename, name)
+        self.value = value
 
 
 class AstArrayDeclaration(AstConstDeclaration):
     """Declaration of a constant array."""
 
-    def __init__(self, type_, name, values):
-        super().__init__(type_, name)
-        self._values = values
+    def __init__(self, typename, name, values):
+        super().__init__(typename, name)
+        self.values = values
 
 
 class AstStructDeclaration(AstBody):
     """Declares a structured contiguous sequence of data in a file."""
 
     def __init__(self, name, struct_contents):
-        self._name = name
-        self._fields = []
+        self.name = name
+        self.fields = []
 
         # Look for and process field items
         for item in struct_contents:
             if isinstance(item, AstStructField):
-                self._fields.append(item)
+                self.fields.append(item)
 
         # Let base class process declarations.  The list comprehension removes
         # struct_contents that we've already determined are fields
-        super().__init__([ x for x in struct_contents if x not in self._fields ])
+        super().__init__([ x for x in struct_contents if x not in self.fields ])
 
     def find_symbol(self, name):
         """Tries to locate a symbol declaration in scope."""
-        for field in self._fields:
+        for field in self.fields:
             if field._name == name:
                 return field
 
@@ -118,8 +118,8 @@ class AstStructField(AstDeclaration):
     body of a struct.
     """
 
-    def __init__(self, type_, name):
-        super().__init__(type_, name)
+    def __init__(self, typename, name):
+        super().__init__(typename, name)
 
 class AstStructValueField(AstStructField):
     """Defines a struct field that contains a single value entry.
@@ -128,8 +128,8 @@ class AstStructValueField(AstStructField):
     spade's typesystem or may be a struct defined in scope of the field.
     """
 
-    def __init__(self, type_, name):
-        super().__init__(type_, name)
+    def __init__(self, typename, name):
+        super().__init__(typename_, name)
 
 
 class AstStructArrayField(AstStructValueField):
@@ -140,6 +140,6 @@ class AstStructArrayField(AstStructValueField):
     should determine the size at runtime.
     """
 
-    def __init__(self, type_, name, size):
-        super().__init__(type_, name)
-        self._size = size
+    def __init__(self, typename, name, size):
+        super().__init__(typename, name)
+        self.size = size
