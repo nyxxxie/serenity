@@ -17,9 +17,9 @@ def test_body_structs(multistruct1, loc, field_amt, struct_amt, const_amt):
     assert symb
     assert symb._parent is root
     assert symb._name == loc
-    assert len(symb._fields) == field_amt
-    assert len(symb._struct_decls) == struct_amt
-    assert len(symb._const_decls) == const_amt
+    assert len(symb.fields) == field_amt
+    assert len(symb.struct_decls) == struct_amt
+    assert len(symb.const_decls) == const_amt
 
 @pytest.mark.parametrize("loc,field_type,field_name,expected_cls", [
     ("data_t", "int", "hungry", ast.AstStructValueField),
@@ -43,5 +43,5 @@ def test_struct_data_t(multistruct1, loc, field_type, field_name, expected_cls):
     assert field
     assert isinstance(field, ast.AstStructField)
     assert isinstance(field, expected_cls)
-    assert field._name == field_name
-    assert field._type == field_type
+    assert field.name == field_name
+    assert field.typename == field_type

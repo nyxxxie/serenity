@@ -24,7 +24,7 @@ class AstBody(object):
 
         for decl in decl_list:
             if isinstance(decl, AstStructDeclaration):
-                decl._parent = self  # Set this decl's parent body to us
+                decl.parent = self  # Set this decl's parent body to us
                 self.struct_decls.append(decl)
             elif isinstance(decl, AstConstDeclaration):
                 self.const_decls.append(decl)
@@ -38,12 +38,12 @@ class AstBody(object):
         """Tries to locate a symbol declaration in scope."""
         # Search constants
         for const_decl in self.const_decls:
-            if struct_decl._name == name:
+            if struct_decl.name == name:
                 return struct_decl
 
         # Search structs
         for struct_decl in self.struct_decls:
-            if struct_decl._name == name:
+            if struct_decl.name == name:
                 return struct_decl
 
         # If there's a parent, try them
@@ -104,7 +104,7 @@ class AstStructDeclaration(AstBody):
     def find_symbol(self, name):
         """Tries to locate a symbol declaration in scope."""
         for field in self.fields:
-            if field._name == name:
+            if field.name == name:
                 return field
 
         # If the symbol isn't a field, try AstBody's symbols
@@ -129,7 +129,7 @@ class AstStructValueField(AstStructField):
     """
 
     def __init__(self, typename, name):
-        super().__init__(typename_, name)
+        super().__init__(typename, name)
 
 
 class AstStructArrayField(AstStructValueField):
