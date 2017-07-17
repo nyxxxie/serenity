@@ -15,8 +15,8 @@ def test_body_structs(multistruct1, loc, field_amt, struct_amt, const_amt):
     assert root
     symb = root.find_symbol(loc)
     assert symb
-    assert symb._parent is root
-    assert symb._name == loc
+    assert symb.parent is root
+    assert symb.name == loc
     assert len(symb.fields) == field_amt
     assert len(symb.struct_decls) == struct_amt
     assert len(symb.const_decls) == const_amt
