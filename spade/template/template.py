@@ -38,36 +38,42 @@ blah
 class TNode(object):
     """Base class of any node in a template tree structure."""
 
-    def __init__(self, root=None, parent=None):
+    def __init__(self, name, root=None, parent=None):
+        self.name = name
         self.parent = parent
+        self.root = root
+
 
 class TVar(TNode):
     """."""
 
-    def __init__(self, root, parent):
-        super().__init__(root, parent)
+    def __init__(self, name, root, parent, type_cls):
+        super().__init__(name, root, parent)
 
 
 class TArray(TNode):
-    """Template array."""
+    """."""
 
-    def __init__(self, root, parent):
-        super().__init__(root, parent)
+    def __init__(self, name, root, parent):
+        super().__init__(name, root, parent)
 
 
 class TStruct(TNode):
-    """Root of the AST tree."""
+    """An ordered container for template nodes."""
 
-    def __init__(self, root, parent):
-        super().__init__(root, parent)
+    def __init__(self, name, root, parent):
+        super().__init__(name, root, parent)
         self.fields = []
 
+    def refresh():
+        pass
+
     def add_field(self, field):
-        self.append(field)
+        self.fields.append(field)
 
 
 class TRoot(TStruct):
     """Base of a spade template."""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, name):
+        super().__init__(name, self, None)
