@@ -9,6 +9,7 @@ generation operations to a single function call.
 """
 
 import logging
+from spade.typesystem import typedef
 from spade.template import ast
 from spade.template import template
 
@@ -38,19 +39,34 @@ class TemplateGenerator(object):
         if self.root:
             self.root.refresh()
 
-    def process_var(self, field_decl, parent=None):
+    def process_field(self, field_decl, parent=None):
         """Process var."""
 
         logging.debug("Processing var [type: \"{}\", name: \"{}\"]".format(
                 field_decl.typename, field_decl.name))
 
-        # Find type
-        # TODO: Get a better way of finding a type (check typedefs, structs,
-        # and built-in types in that order)
-        type_cls = None  # typesystem.get_type()
+        # Look for a symbol defined in the template that fits the typename
+        symb = parent.find_symbol(field_decl.typename)
+        if symb:
+            if isinstance(ast.AstStructDeclaration, symb):
+                logging.debug("Determined type {} is a struct ".format(
+                        field_decl.typename))
+                return self.process_struct(symb, parent)
+            # elif: TODO: process typedefs
+            else:
+                raise TemplateGeneratorException("Unexpected type {} specified "
+                        "for struct element {}".format(type(symb), field_decl.name))
 
-        # Create template node
-        return template.TVar(field_decl.name, self.root, parent, type_cls)
+
+        # If we didn't find any symbol, check the typesystem.
+        # TODO: check typesystem
+        symb = None
+        if True:
+            return template.TVar(field_decl.name, self.root, parent, symb)
+
+        # If we didn't find a definition for the type, we're SOL
+        raise TemplateGeneratorException("Undefined type {} specified for"
+                "struct element {}".format(field_decl.typename, field_decl.name))
 
     def process_struct(self, struct_decl, parent=None, struct=None):
         """Process struct."""
@@ -65,9 +81,9 @@ class TemplateGenerator(object):
         # Process each field
         for field in struct_decl.fields:
             if isinstance(field, ast.AstStructValueField):
-                struct.add_field(self.process_var(field, struct))
+                struct.add_field(self.process_field(field, struct))
             elif isinstance(field, ast.AstStructArrayField):
-                struct.add_field(self.process_struct(field, struct))
+                raise NotImplemented("Arrays are not implemented.")
             else:
                 raise TemplateGeneratorException(
                     "Bad field type: \"{}\"".format(type(field)))

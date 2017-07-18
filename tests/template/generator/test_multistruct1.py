@@ -1,8 +1,11 @@
 import pytest
+import logging
 from tests.template.fixtures import multistruct1, multistruct1_target
 
 from spade.template import parser
 from spade.template import generator
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 def test_parse(multistruct1, multistruct1_target):

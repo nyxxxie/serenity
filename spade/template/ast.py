@@ -36,6 +36,7 @@ class AstBody(object):
 
     def find_symbol(self, name):
         """Tries to locate a symbol declaration in scope."""
+
         # Search constants
         for const_decl in self.const_decls:
             if struct_decl.name == name:
