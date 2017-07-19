@@ -39,16 +39,16 @@ class TemplateGenerator(object):
         if self.root:
             self.root.refresh()
 
-    def process_field(self, field_decl, parent=None):
+    def process_field(self, field_decl, parent_ast=None, parent=None):
         """Process var."""
 
         logging.debug("Processing var [type: \"{}\", name: \"{}\"]".format(
                 field_decl.typename, field_decl.name))
 
         # Look for a symbol defined in the template that fits the typename
-        symb = parent.find_symbol(field_decl.typename)
+        symb = parent_ast.find_symbol(field_decl.typename)
         if symb:
-            if isinstance(ast.AstStructDeclaration, symb):
+            if isinstance(symb, ast.AstStructDeclaration):
                 logging.debug("Determined type {} is a struct ".format(
                         field_decl.typename))
                 return self.process_struct(symb, parent)
@@ -62,6 +62,8 @@ class TemplateGenerator(object):
         # TODO: check typesystem
         symb = None
         if True:
+            logging.debug("Determined type {} is a native type.".format(
+                    field_decl.typename))
             return template.TVar(field_decl.name, self.root, parent, symb)
 
         # If we didn't find a definition for the type, we're SOL
@@ -76,12 +78,12 @@ class TemplateGenerator(object):
 
         # Create the struct node if it wasn't given
         if not struct:
-            struct = template.TStruct(self.root, parent)
+            struct = template.TStruct(struct_decl.name, self.root, parent)
 
         # Process each field
         for field in struct_decl.fields:
             if isinstance(field, ast.AstStructValueField):
-                struct.add_field(self.process_field(field, struct))
+                struct.add_field(self.process_field(field, struct_decl, struct))
             elif isinstance(field, ast.AstStructArrayField):
                 raise NotImplemented("Arrays are not implemented.")
             else:
