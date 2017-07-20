@@ -13,7 +13,6 @@ from spade.typesystem import typedef
 from spade.template import ast
 from spade.template import template
 
-TEMPLATE_ENTRY = "FILE"
 
 
 class TemplateGeneratorException(Exception):
@@ -98,12 +97,12 @@ class TemplateGenerator(object):
         logging.debug("Processing root.")
 
         # Locate the entrypoint structure
-        entry_struct_decl = self._ast.find_symbol(TEMPLATE_ENTRY)
+        entry_struct_decl = self._ast.find_symbol(template.TEMPLATE_ENTRY)
         if not entry_struct_decl:
             raise TemplateGeneratorException("Template entry point not found.")
 
         # Process root like a struct, since it basically is one kinda
-        self._root = template.TRoot(TEMPLATE_ENTRY)
+        self._root = template.TRoot(template.TEMPLATE_ENTRY)
         return self.process_struct(entry_struct_decl, self.root, self.root)
 
 
@@ -116,4 +115,5 @@ def generate_template(target_file, ast_root):
 
     # TODO: perform argument sanity checking
     template_generator = TemplateGenerator(target_file, ast_root)
+    # TODO: refresh_data here
     return template_generator.root
