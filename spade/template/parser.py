@@ -104,8 +104,9 @@ class TemplateParser(object):
 
     def p_error(self, p):
         stack = ' '.join([symbol.type for symbol in self.parser.symstack][1:])
-        print('Syntax error on line {}:'.format(p.lineno))
-        print('\tparser state {} {} . {}'.format(self.parser.state, stack, p))
+        # TODO: make this an exception
+        logging.error('Syntax error on line {}:'.format(p.lineno))
+        logging.error('\tparser state {} {} . {}'.format(self.parser.state, stack, p))
 
     @classmethod
     def parse_string(cls, text):
