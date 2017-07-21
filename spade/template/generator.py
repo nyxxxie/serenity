@@ -44,13 +44,13 @@ class TemplateGenerator(object):
         logging.debug("Processing var [type: \"{}\", name: \"{}\"]".format(
                 field_decl.typename, field_decl.name))
 
-        # Look for a symbol defined in the template that fits the typename
+
         symb = parent_ast.find_symbol(field_decl.typename)
         if symb:
             if isinstance(symb, ast.AstStructDeclaration):
                 logging.debug("Determined type {} is a struct ".format(
                         field_decl.typename))
-                return self.process_struct(symb, parent)
+                return self.process_struct(field_decl.name, symb, parent)
             # elif: TODO: process typedefs
             else:
                 raise TemplateGeneratorException("Unexpected type {} specified "
@@ -69,15 +69,14 @@ class TemplateGenerator(object):
         raise TemplateGeneratorException("Undefined type {} specified for"
                 "struct element {}".format(field_decl.typename, field_decl.name))
 
-    def process_struct(self, struct_decl, parent=None, struct=None):
+    def process_struct(self, field_name, struct_decl, parent=None, struct=None):
         """Process struct."""
 
-        logging.debug("Processing struct [name: \"{}\"]".format(
-                struct_decl.name))
+        logging.debug("Processing struct [name: \"{}\"]".format(field_name))
 
         # Create the struct node if it wasn't given
         if not struct:
-            struct = template.TStruct(struct_decl.name, self.root, parent)
+            struct = template.TStruct(field_name, self.root, parent)
 
         # Process each field
         for field in struct_decl.fields:
@@ -87,7 +86,7 @@ class TemplateGenerator(object):
                 raise NotImplemented("Arrays are not implemented.")
             else:
                 raise TemplateGeneratorException(
-                    "Bad field type: \"{}\"".format(type(field)))
+                        "Bad field type: \"{}\"".format(type(field)))
 
         return struct
 
@@ -103,7 +102,8 @@ class TemplateGenerator(object):
 
         # Process root like a struct, since it basically is one kinda
         self._root = template.TRoot(template.TEMPLATE_ENTRY)
-        return self.process_struct(entry_struct_decl, self.root, self.root)
+        return self.process_struct(template.TEMPLATE_ENTRY, entry_struct_decl,
+                                   self.root, self.root)
 
 
 def generate_template(target_file, ast_root):

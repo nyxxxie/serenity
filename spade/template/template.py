@@ -93,7 +93,7 @@ class TStruct(TNode):
                 return self.root
             # If we havent, continue on up the path
             if self.root is self:
-                self.root.find_node(split[1])
+                return self.root.find_node(split[1])
             # If this has also failed, we've encountered a problem
             else:
                 logging.error("Failed to process location {} relative "
@@ -105,22 +105,22 @@ class TStruct(TNode):
             if node.name == split[0]:
                 break
         else:
-            logging.error("Failed to find node {} at {}".format(split[0],
+            logging.debug("Failed to find node {} at {}".format(split[0],
                     location))
             return None
 
         # Using this field, determine its type and handle it accordingly
-        if isinstance(node, template.TStruct):
+        if isinstance(node, TStruct):
             # Have we reached the end?
             if len(split) == 1:
-                return self
+                return node
             # If not, continue searching
             else:
                 return node.find_node(split[1])
-        elif isinstance(node, template.TVar):
+        elif isinstance(node, TVar):
             # Have we reached the end?
             if len(split) == 1:
-                return self
+                return node
             # If not, we should have since TVars are terminals!
             else:
                 logging.error("Encountered non terminal node {} at {}".format(
@@ -129,6 +129,7 @@ class TStruct(TNode):
         else:
             logging.error("Unexpected node at location {} [{}]".format(
                     location, type(node)))
+            return None
 
 
 class TRoot(TStruct):

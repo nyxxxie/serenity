@@ -1,3 +1,4 @@
+import sys
 import pytest
 import logging
 from tests.template.fixtures import multistruct1, multistruct1_target
@@ -6,7 +7,7 @@ from spade.template import parser
 from spade.template import template
 from spade.template import generator
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 @pytest.mark.parametrize("loc,cls", [
