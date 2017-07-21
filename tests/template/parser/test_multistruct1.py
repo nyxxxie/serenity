@@ -13,6 +13,7 @@ from spade.template import ast
 def test_body_structs(multistruct1, loc, field_amt, struct_amt, const_amt):
     root = parser.TemplateParser.parse_file(multistruct1)
     assert root
+    assert not root.parent
     symb = root.find_symbol(loc)
     assert symb
     assert symb.parent is root
@@ -37,6 +38,7 @@ def test_body_structs(multistruct1, loc, field_amt, struct_amt, const_amt):
 def test_struct_data_t(multistruct1, loc, field_type, field_name, expected_cls):
     root = parser.TemplateParser.parse_file(multistruct1)
     assert root
+    assert not root.parent
     symb = root.find_symbol(loc)
     assert symb
     field = symb.find_symbol(field_name)
