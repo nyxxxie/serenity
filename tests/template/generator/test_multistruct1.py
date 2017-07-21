@@ -9,6 +9,9 @@ from spade.template import generator
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
+# TODO: test invalid fields
+# TODO: test refresh functions
+# TODO: test absolute path from inner struct
 
 @pytest.mark.parametrize("loc,cls", [
     ("FILE", template.TRoot),
