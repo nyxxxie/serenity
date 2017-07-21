@@ -114,5 +114,5 @@ def generate_template(target_file, ast_root):
 
     # TODO: perform argument sanity checking
     template_generator = TemplateGenerator(target_file, ast_root)
-    # TODO: refresh_data here
+    template_generator.refresh(target_file)
     return template_generator.root

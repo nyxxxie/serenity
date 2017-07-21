@@ -60,6 +60,17 @@ class TVar(TNode):
     def __init__(self, name, root, parent, type_cls):
         super().__init__(name, root, parent)
         self.type_cls = type_cls
+        self.type_data = None
+        self.size = 0
+
+    def refresh(target_file, offset):
+        logging.debug("Reading {} bytes of type data at offset {}".format(offset,
+                self.type_cls.size))
+        self.size = self.type_cls.size
+        target_file.seek(offset)
+        # TODO: check if offset goes past file bounds
+        # TODO: check if read goes past file bounds
+        self.type_data = type_cls(target_file.read(self.size))
 
 
 class TArray(TNode):
@@ -75,9 +86,14 @@ class TStruct(TNode):
     def __init__(self, name, root, parent):
         super().__init__(name, root, parent)
         self.fields = []
+        self.size = 0
 
-    def refresh():
-        pass
+    def refresh(target_file, offset=0):
+        self.offset = offset
+        self.size = 0
+        for node in self.fields:
+            node.refresh(target_file, offset + self.size)
+            self.size += node.size
 
     def add_field(self, field):
         self.fields.append(field)
