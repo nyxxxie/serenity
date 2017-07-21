@@ -9,7 +9,7 @@ generation operations to a single function call.
 """
 
 import logging
-from spade.typesystem import typedef
+from spade.typesystem import typemanager
 from spade.template import ast
 from spade.template import template
 
@@ -58,9 +58,8 @@ class TemplateGenerator(object):
 
 
         # If we didn't find any symbol, check the typesystem.
-        # TODO: check typesystem
-        symb = None
-        if True:
+        symb = typemanager.get_type(field_decl.typename)
+        if symb:
             logging.debug("Determined type {} is a native type.".format(
                     field_decl.typename))
             return template.TVar(field_decl.name, self.root, parent, symb)
