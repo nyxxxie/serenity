@@ -59,6 +59,7 @@ class TVar(TNode):
 
     def __init__(self, name, root, parent, type_cls):
         super().__init__(name, root, parent)
+        self.type_cls = type_cls
 
 
 class TArray(TNode):
