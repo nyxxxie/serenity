@@ -47,12 +47,15 @@ class TNode(object):
         self.name = name
         self.parent = parent
         self.root = root
+        self.size = 0
 
         if not parent:
             self.location = name
         else:
             self.location = parent.location + "." + name
 
+    def refresh(self, target_file, offset):
+        raise NotImplementedError("Not implemented.")
 
 class TVar(TNode):
     """."""
@@ -60,17 +63,17 @@ class TVar(TNode):
     def __init__(self, name, root, parent, type_cls):
         super().__init__(name, root, parent)
         self.type_cls = type_cls
-        self.type_data = None
+        self.data = None
         self.size = 0
 
-    def refresh(target_file, offset):
+    def refresh(self, target_file, offset):
         logging.debug("Reading {} bytes of type data at offset {}".format(offset,
                 self.type_cls.size))
         self.size = self.type_cls.size
         target_file.seek(offset)
         # TODO: check if offset goes past file bounds
         # TODO: check if read goes past file bounds
-        self.type_data = type_cls(target_file.read(self.size))
+        self.data = self.type_cls(target_file.read(self.size))
 
 
 class TArray(TNode):
@@ -86,9 +89,8 @@ class TStruct(TNode):
     def __init__(self, name, root, parent):
         super().__init__(name, root, parent)
         self.fields = []
-        self.size = 0
 
-    def refresh(target_file, offset=0):
+    def refresh(self, target_file, offset=0):
         self.offset = offset
         self.size = 0
         for node in self.fields:

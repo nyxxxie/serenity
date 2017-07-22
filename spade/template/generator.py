@@ -34,9 +34,9 @@ class TemplateGenerator(object):
     def root(self):
         return self._root
 
-    def refresh():
+    def refresh(self, target_file):
         if self.root:
-            self.root.refresh()
+            self.root.refresh(target_file)
 
     def process_field(self, field_decl, parent_ast=None, parent=None):
         """Process var."""
