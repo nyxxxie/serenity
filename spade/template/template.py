@@ -43,10 +43,11 @@ TEMPLATE_ENTRY = "FILE"
 class TNode(object):
     """Base class of any node in a template tree structure."""
 
-    def __init__(self, name, root=None, parent=None):
+    def __init__(self, name, root=None, parent=None, index=0):
         self.name = name
         self.parent = parent
         self.root = root
+        self.index = index
         self.size = 0
 
         if not parent:
@@ -60,8 +61,8 @@ class TNode(object):
 class TVar(TNode):
     """."""
 
-    def __init__(self, name, root, parent, type_cls):
-        super().__init__(name, root, parent)
+    def __init__(self, name, root, parent, index, type_cls):
+        super().__init__(name, root, parent, index)
         self.type_cls = type_cls
         self.data = None
         self.size = 0
@@ -79,15 +80,15 @@ class TVar(TNode):
 class TArray(TNode):
     """."""
 
-    def __init__(self, name, root, parent):
-        super().__init__(name, root, parent)
+    def __init__(self, name, root, parent, index):
+        super().__init__(name, root, parent, index)
 
 
 class TStruct(TNode):
     """An ordered container for template nodes."""
 
-    def __init__(self, name, root, parent):
-        super().__init__(name, root, parent)
+    def __init__(self, name, root, parent, index):
+        super().__init__(name, root, parent, index)
         self.fields = []
 
     def refresh(self, target_file, offset=0):
@@ -122,6 +123,7 @@ class TStruct(TNode):
         # Find the field that cooresponds to the current location
         for node in self.fields:
             if node.name == split[0]:
+                print("QQQQ\t" + node.name)
                 break
         else:
             logging.debug("Failed to find node {} at {}".format(split[0],
@@ -155,4 +157,4 @@ class TRoot(TStruct):
     """Base of a spade template."""
 
     def __init__(self, name):
-        super().__init__(name, self, None)
+        super().__init__(name, self, None, 0)

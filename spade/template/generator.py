@@ -38,7 +38,7 @@ class TemplateGenerator(object):
         if self.root:
             self.root.refresh(target_file)
 
-    def process_field(self, field_decl, parent_ast=None, parent=None):
+    def process_field(self, field_decl, parent_ast=None, parent=None, index=0):
         """Process var."""
 
         logging.debug("Processing var [type: \"{}\", name: \"{}\"]".format(
@@ -50,37 +50,37 @@ class TemplateGenerator(object):
             if isinstance(symb, ast.AstStructDeclaration):
                 logging.debug("Determined type {} is a struct ".format(
                         field_decl.typename))
-                return self.process_struct(field_decl.name, symb, parent)
+                return self.process_struct(field_decl.name, symb, parent, index)
             # elif: TODO: process typedefs
             else:
                 raise GeneratorError("Unexpected type {} specified for struct "
                         "element {}".format(type(symb), field_decl.name))
-
 
         # If we didn't find any symbol, check the typesystem.
         symb = typemanager.get_type(field_decl.typename)
         if symb:
             logging.debug("Determined type {} is a native type.".format(
                     field_decl.typename))
-            return template.TVar(field_decl.name, self.root, parent, symb)
+            return template.TVar(field_decl.name, self.root, parent, index, symb)
 
         # If we didn't find a definition for the type, we're SOL
         raise GeneratorError("Undefined type {} specified for struct element "
                 "{}".format(field_decl.typename, field_decl.name))
 
-    def process_struct(self, field_name, struct_decl, parent=None, struct=None):
+    def process_struct(self, field_name, struct_decl, parent=None, index=0,
+                       struct=None):
         """Process struct."""
 
         logging.debug("Processing struct [name: \"{}\"]".format(field_name))
 
         # Create the struct node if it wasn't given
         if not struct:
-            struct = template.TStruct(field_name, self.root, parent)
+            struct = template.TStruct(field_name, self.root, parent, index)
 
         # Process each field
-        for field in struct_decl.fields:
+        for i, field in enumerate(struct_decl.fields):
             if isinstance(field, ast.AstStructValueField):
-                struct.add_field(self.process_field(field, struct_decl, struct))
+                struct.add_field(self.process_field(field, struct_decl, struct, i))
             elif isinstance(field, ast.AstStructArrayField):
                 raise NotImplemented("Arrays are not implemented.")
             else:
@@ -101,7 +101,7 @@ class TemplateGenerator(object):
         # Process root like a struct, since it basically is one kinda
         self._root = template.TRoot(template.TEMPLATE_ENTRY)
         return self.process_struct(template.TEMPLATE_ENTRY, entry_struct_decl,
-                                   self.root, self.root)
+                                   self.root, 0, self.root)
 
 
 def generate_template(target_file, ast_root):
