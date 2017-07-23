@@ -15,7 +15,7 @@ from spade.template import template
 
 
 
-class TemplateGeneratorException(Exception):
+class GeneratorError(Exception):
     """Raised when an issue is encountered processing a template AST."""
 
     pass
@@ -53,8 +53,8 @@ class TemplateGenerator(object):
                 return self.process_struct(field_decl.name, symb, parent)
             # elif: TODO: process typedefs
             else:
-                raise TemplateGeneratorException("Unexpected type {} specified "
-                        "for struct element {}".format(type(symb), field_decl.name))
+                raise GeneratorError("Unexpected type {} specified for struct "
+                        "element {}".format(type(symb), field_decl.name))
 
 
         # If we didn't find any symbol, check the typesystem.
@@ -65,8 +65,8 @@ class TemplateGenerator(object):
             return template.TVar(field_decl.name, self.root, parent, symb)
 
         # If we didn't find a definition for the type, we're SOL
-        raise TemplateGeneratorException("Undefined type {} specified for"
-                "struct element {}".format(field_decl.typename, field_decl.name))
+        raise GeneratorError("Undefined type {} specified for struct element "
+                "{}".format(field_decl.typename, field_decl.name))
 
     def process_struct(self, field_name, struct_decl, parent=None, struct=None):
         """Process struct."""
@@ -84,8 +84,7 @@ class TemplateGenerator(object):
             elif isinstance(field, ast.AstStructArrayField):
                 raise NotImplemented("Arrays are not implemented.")
             else:
-                raise TemplateGeneratorException(
-                        "Bad field type: \"{}\"".format(type(field)))
+                raise GeneratorError("Bad field type \"{}\"".format(type(field)))
 
         return struct
 
@@ -97,7 +96,7 @@ class TemplateGenerator(object):
         # Locate the entrypoint structure
         entry_struct_decl = self._ast.find_symbol(template.TEMPLATE_ENTRY)
         if not entry_struct_decl:
-            raise TemplateGeneratorException("Template entry point not found.")
+            raise GeneratorError("Template entry point not found.")
 
         # Process root like a struct, since it basically is one kinda
         self._root = template.TRoot(template.TEMPLATE_ENTRY)

@@ -11,9 +11,10 @@ from spade.template import lexer
 # execution of this program.
 # pylint: disable=invalid-name,no-self-use
 
-class TemplateParserException(Exception):
+class ParsingError(Exception):
     """Raised when an issue is encountered parsing a template file."""
 
+    # TODO: require that line+column be specified when raising
     pass
 
 
