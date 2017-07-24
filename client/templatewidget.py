@@ -106,6 +106,11 @@ class TreeModel(QtCore.QAbstractItemModel):
                 if index.column() == 0:
                     return node.name
                 elif index.column() == 1:
+                    # TODO: implement a type selector as a qcombobox.
+                    # http://www.qtcentre.org/threads/43148-QComboBox-in-QTreeView
+                    # Alternately, create a second view for editing the ast and
+                    # have the template viewer just be a... viewer.  Would be a
+                    # lot less complicated that way...
                     return node.type_name
                 elif index.column() == 2:
                     return node.offset
