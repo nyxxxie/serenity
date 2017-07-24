@@ -1,9 +1,13 @@
+import logging
+
+from PyQt5 import QtGui
 from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from spade import template
 
 HEADERS = ("Name", "Type", "Hex", "Value")
+
 
 class TreeItem(object):
     """Wrapper class that fits a spade TNode into the tree.
@@ -13,21 +17,14 @@ class TreeItem(object):
     """
 
     def __init__(self, node):
-        pass
+        self.node = node
+        self.row = 0
+        self.column = 0
 
-# (venv) endor:src/spade :: ./qspade
-# Exception!
-# 'NoneType' object has no attribute 'from_file'
-# Traceback (most recent call last):
-#   File "./qspade", line 10, in rungui
-#     w = SpadeMainWindow()
-#   File "/home/nyx/src/spade/client/mainwindow.py", line 18, in __init__
-#     self._create_templateview()
-#   File "/home/nyx/src/spade/client/mainwindow.py", line 64, in _create_templateview
-#     self.dock_templateview.setWidget(TemplateWidget())
-#   File "/home/nyx/src/spade/client/templatewidget.py", line 58, in __init__
-#     template = template.from_file("template.stf", "target.bin")
-# AttributeError: 'NoneType' object has no attribute 'from_file'
+    @property
+    def fields(self):
+        return self.node.fields
+
 
 class TreeModel(QtCore.QAbstractItemModel):
     """Displays TreeItems containing TNodes."""
@@ -36,42 +33,118 @@ class TreeModel(QtCore.QAbstractItemModel):
         super().__init__()
         self.root_node = root_node
 
-    def index(self, row, column, parent):
+    def getParent(self, parent):
         if not parent.isValid():
-            return self.createIndex(row, column, self.root_node)
-        parent_node = parent.internalPointer()
-        return self.createIndex(row, column, parent_node)
+            return self.root_node
+        else:
+            return parent.internalPointer()
+
+    def index(self, row, column, parent):
+        if not self.hasIndex(row, column, parent):
+            return QtCore.QModelIndex()
+
+        parent_node = self.getParent(parent)
+        if not parent_node:
+            logging.error("Bad parent node.")
+            return QtCore.QModelIndex()
+
+        child_node = parent_node.fields[row]
+        if not child_node:
+            logging.error("Bad child node.")
+            return QtCore.QModelIndex()
+
+        return self.createIndex(row, column, child_node)
 
     def parent(self, index):
         if not index.isValid():
-            return Qt.QModelIndex()
-        node = index.internalPointer()
-        if not node.parent:
-            return Qt.QModelIndex()
-        else:
-            return self.createIndex(node.parent_node, 0, node.parent)
+            return QtCore.QModelIndex()
+
+        child_node = index.internalPointer()
+        if not child_node:
+            logging.error("Bad child node.")
+
+        parent_node = child_node.parent
+        if not parent_node:
+            logging.error("Bad parent node.")
+            return QtCore.QModelIndex()
+
+        if parent_node is self.root_node:
+            return QtCore.QModelIndex()
+
+        return self.createIndex(parent_node.index, 0, parent_node)
+
+    def rowCount(self, parent):
+        if parent.column() > 0:
+            return 0
+
+        parent_node = self.getParent(parent)
+        if not parent_node:
+            logging.error("Bad parent node.")
+            return QtCore.QModelIndex()
+
+        if isinstance(parent_node, template.TVar):
+            return 0
+        elif isinstance(parent_node, template.TStruct):
+            return len(parent_node.fields)
+
+        return 0
+
+    def columnCount(self, parent):
+        return len(HEADERS)
 
     def data(self, index, role):
         if not index.isValid():
-            return None
-        if role == Qt.DisplayRole:
-            return "adsf"
+            return QtCore.QVariant()
 
-    def rowCount(self, parent):
-        if not parent.isValid():
-            return 1
-        node = parent.internalPointer()
-        return len(node.subnodes)
+        if role != Qt.DisplayRole:
+            return QtCore.QVariant()
+
+        node = index.internalPointer()
+        if not node:
+            logging.error("Bad node.")
+            return QtCore.QVariant()
+
+        if isinstance(node, template.TVar):
+            if index.column() == 0:
+                return node.name
+            elif index.column() == 1:
+                return "typename"
+                # return node.type_name
+            elif index.column() == 2:
+                return str(node.data.bytes())
+            elif index.column() == 3:
+                return node.data.string()
+        elif isinstance(node, template.TStruct):
+            if index.column() == 0:
+                return node.name
+            elif index.column() == 1:
+                return "typename"
+
+        return QtCore.QVariant()
+
+    def flags(self, index):
+        if not index.isValid():
+            return 0
+
+        return super().flags(index)
+
+    def headerData(self, section, orientation, role):
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            return HEADERS[section]
+
+        return QtCore.QVariant()
 
 class TemplateWidget(QtWidgets.QTreeView):
 
     def __init__(self, template_root=None):
         super().__init__()
 
+        print("AND THE HELL BEGINS")
+
         # DELETE THE BELOW WHEN TESTING IS DONE
         template_root = template.from_file(
-                "tests/template/testdata/multistruct.stf",
-                "tests/template/testdata/multistruct_target")
+                "tests/template/testdata/multistruct1.stf",
+                "tests/template/testdata/multistruct1_target")
         if not template_root:
             print("Bad root!")
         # DELETE THE ABOVE WHEN TESTING IS DONE
