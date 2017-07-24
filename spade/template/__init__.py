@@ -1,6 +1,7 @@
 import logging
 from spade.template import parser
 from spade.template import generator
+from spade.template.template import TStruct, TVar, TArray
 
 def from_file(template_file_path: str, target_file_path: str):
     """Transforms a .stf and target file into a workable template.
