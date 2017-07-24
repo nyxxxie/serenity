@@ -96,32 +96,45 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not index.isValid():
             return QtCore.QVariant()
 
-        if role != Qt.DisplayRole:
-            return QtCore.QVariant()
-
         node = index.internalPointer()
         if not node:
             logging.error("Bad node.")
             return QtCore.QVariant()
 
-        if isinstance(node, template.TVar):
-            if index.column() == 0:
-                return node.name
-            elif index.column() == 1:
-                return node.type_name
+        if role == Qt.DisplayRole:
+            if isinstance(node, template.TVar):
+                if index.column() == 0:
+                    return node.name
+                elif index.column() == 1:
+                    return node.type_name
+                elif index.column() == 2:
+                    return node.offset
+                elif index.column() == 3:
+                    return str(node.data.bytes())
+                elif index.column() == 4:
+                    return node.data.string()
+            elif isinstance(node, template.TStruct):
+                if index.column() == 0:
+                    return node.name
+                elif index.column() == 1:
+                    return node.type_name
+                elif index.column() == 2:
+                    return node.offset
+        elif role == Qt.BackgroundRole:
+            if node.index % 2 == 0:
+                return QtCore.QVariant(Qt.white);
+            else:
+                return QtCore.QVariant(QtGui.QColor(226, 237, 253));
+        elif role == Qt.ForegroundRole:
+            if index.column() == 1:
+                return QtCore.QVariant(QtGui.QColor(100, 0, 150));
             elif index.column() == 2:
-                return node.offset
-            elif index.column() == 3:
-                return str(node.data.bytes())
+                return QtCore.QVariant(QtGui.QColor(100, 0, 0));
             elif index.column() == 4:
-                return node.data.string()
-        elif isinstance(node, template.TStruct):
-            if index.column() == 0:
-                return node.name
-            elif index.column() == 1:
-                return node.type_name
-            elif index.column() == 2:
-                return node.offset
+                return QtCore.QVariant(QtGui.QColor(200, 200, 0));
+        elif role == Qt.TextAlignmentRole:
+            if index.column() == 2:
+                return Qt.AlignRight
 
         return QtCore.QVariant()
 
@@ -158,3 +171,12 @@ class TemplateWidget(QtWidgets.QTreeView):
     def setTemplateRoot(self, template_root):
         model = TreeModel(template_root)
         self.setModel(model)
+
+        # Rearrange columns.  We do it this way so the expander arrow moves to a
+        # non-zero column
+        self.header().moveSection(2,0)  # swap offset with name
+        self.header().moveSection(2,1)  # Swap name with type
+
+        # Resize columns to look not-crappy
+        for i in range(0, len(HEADERS)):
+            self.resizeColumnToContents(i)
