@@ -1,5 +1,5 @@
 struct data_t {
-    int q;
+    char q;
 };
 
 struct header_t {
@@ -7,13 +7,13 @@ struct header_t {
     char blah1;
     char blah2;
     char blah3;
-    int mmmm;
-    uint32 asdf;
+    byte mmmm;
+    byte asdf;
     data_t data;
 };
 
 struct FILE {
     header_t header;
-    int GUN;
-    int ramen_4_me;
+    int ah;
+    byte ramen_4_me;
 };

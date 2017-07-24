@@ -6,7 +6,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from spade import template
 
-HEADERS = ("Name", "Type", "Hex", "Value")
+HEADERS = ("Name", "Type", "Offset", "Hex", "Value")
 
 
 class TreeItem(object):
@@ -108,17 +108,20 @@ class TreeModel(QtCore.QAbstractItemModel):
             if index.column() == 0:
                 return node.name
             elif index.column() == 1:
-                return "typename"
-                # return node.type_name
+                return node.type_name
             elif index.column() == 2:
-                return str(node.data.bytes())
+                return node.offset
             elif index.column() == 3:
+                return str(node.data.bytes())
+            elif index.column() == 4:
                 return node.data.string()
         elif isinstance(node, template.TStruct):
             if index.column() == 0:
                 return node.name
             elif index.column() == 1:
-                return "typename"
+                return node.type_name
+            elif index.column() == 2:
+                return node.offset
 
         return QtCore.QVariant()
 

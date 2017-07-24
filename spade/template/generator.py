@@ -61,21 +61,23 @@ class TemplateGenerator(object):
         if symb:
             logging.debug("Determined type {} is a native type.".format(
                     field_decl.typename))
-            return template.TVar(field_decl.name, self.root, parent, index, symb)
+            return template.TVar(field_decl.name, field_decl.typename, self.root,
+                                 parent, index, symb)
 
         # If we didn't find a definition for the type, we're SOL
         raise GeneratorError("Undefined type {} specified for struct element "
                 "{}".format(field_decl.typename, field_decl.name))
 
-    def process_struct(self, field_name, struct_decl, parent=None, index=0,
-                       struct=None):
+    def process_struct(self, field_name, struct_decl, parent=None,
+                       index=0, struct=None):
         """Process struct."""
 
         logging.debug("Processing struct [name: \"{}\"]".format(field_name))
 
         # Create the struct node if it wasn't given
         if not struct:
-            struct = template.TStruct(field_name, self.root, parent, index)
+            struct = template.TStruct(field_name, struct_decl.name, self.root,
+                                      parent, index)
 
         # Process each field
         for i, field in enumerate(struct_decl.fields):
