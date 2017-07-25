@@ -6,7 +6,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from spade import template
 
-HEADERS = ("Name", "Type", "Offset", "Hex", "Value")
+HEADERS = ("Name", "Type", "Value", "Offset", "Hex")
 
 
 class TreeItem(object):
@@ -113,17 +113,17 @@ class TreeModel(QtCore.QAbstractItemModel):
                     # lot less complicated that way...
                     return node.type_name
                 elif index.column() == 2:
-                    return node.offset
-                elif index.column() == 3:
-                    return str(node.data.bytes())
-                elif index.column() == 4:
                     return node.data.string()
+                elif index.column() == 3:
+                    return node.offset
+                elif index.column() == 4:
+                    return str(node.data.bytes())
             elif isinstance(node, template.TStruct):
                 if index.column() == 0:
                     return node.name
                 elif index.column() == 1:
                     return node.type_name
-                elif index.column() == 2:
+                elif index.column() == 3:
                     return node.offset
         elif role == Qt.BackgroundRole:
             if node.index % 2 == 0:
@@ -132,13 +132,13 @@ class TreeModel(QtCore.QAbstractItemModel):
                 return QtCore.QVariant(QtGui.QColor(226, 237, 253));
         elif role == Qt.ForegroundRole:
             if index.column() == 1:
-                return QtCore.QVariant(QtGui.QColor(100, 0, 150));
-            elif index.column() == 2:
                 return QtCore.QVariant(QtGui.QColor(100, 0, 0));
+            elif index.column() == 2:
+                return QtCore.QVariant(QtGui.QColor(100, 0, 150));
             elif index.column() == 4:
                 return QtCore.QVariant(QtGui.QColor(200, 200, 0));
         elif role == Qt.TextAlignmentRole:
-            if index.column() == 2:
+            if index.column() == 3:
                 return Qt.AlignRight
 
         return QtCore.QVariant()
@@ -179,8 +179,7 @@ class TemplateWidget(QtWidgets.QTreeView):
 
         # Rearrange columns.  We do it this way so the expander arrow moves to a
         # non-zero column
-        self.header().moveSection(2,0)  # swap offset with name
-        self.header().moveSection(2,1)  # Swap name with type
+        self.header().moveSection(1,0)  # Swap name with type
 
         # Resize columns to look not-crappy
         for i in range(0, len(HEADERS)):
