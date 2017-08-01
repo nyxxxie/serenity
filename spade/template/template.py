@@ -57,7 +57,7 @@ class TNode(object):
         else:
             self.location = parent.location + "." + name
 
-    def refresh(self, target_file, offset):
+    def _refresh(self, target_file, offset):
         raise NotImplementedError("Not implemented.")
 
 class TVar(TNode):
@@ -68,7 +68,7 @@ class TVar(TNode):
         self.type_cls = type_cls
         self.data = None
 
-    def refresh(self, target_file, offset):
+    def _refresh(self, target_file, offset):
         logging.debug("Reading {} bytes of type data at offset {}".format(offset,
                 self.type_cls.size))
         self.offset = offset
@@ -77,13 +77,25 @@ class TVar(TNode):
         # TODO: check if offset goes past file bounds
         # TODO: check if read goes past file bounds
         self.data = self.type_cls(target_file.read(self.size))
+        # TODO: create property for data member, so we can r/w direct to file (if
+        # cache is disabled).  This might mean we store the target_file somehow
+        # (maybe keep a global reference in root) so that we can access it from
+        # the property thing in the background.  A single reference also allows
+        # easy changing of the target file.
 
 
 class TArray(TNode):
     """."""
 
-    def __init__(self, name, type_name, root, parent, index):
+    def __init__(self, name, type_name, length, root, parent, index):
         super().__init__(name, type_name, root, parent, index)
+        self.length = length
+
+    def get_index(self, index):
+        pass
+
+    def _refresh(self, target_file, offset):
+        pass
 
 
 class TStruct(TNode):
@@ -94,11 +106,11 @@ class TStruct(TNode):
         self.fields = []
         self.offset = 0
 
-    def refresh(self, target_file, offset=0):
+    def _refresh(self, target_file, offset=0):
         self.offset = offset
         self.size = 0
         for node in self.fields:
-            node.refresh(target_file, offset + self.size)
+            node._refresh(target_file, offset + self.size)
             self.size += node.size
 
     def add_field(self, field):
@@ -160,3 +172,6 @@ class TRoot(TStruct):
 
     def __init__(self, name):
         super().__init__(name, TEMPLATE_ENTRY, self, None, 0)
+
+    def refresh(self, target_file):
+        self._refresh(target_file, 0)
