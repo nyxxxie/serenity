@@ -48,3 +48,13 @@ def multistruct1():
 def multistruct1_target():
     """This returns the path to the multistruct1_target file."""
     yield get_testdata_file("multistruct1_target")
+
+@pytest.fixture()
+def staticarrayfield():
+    """This returns the path to the multistruct1.stf file."""
+    yield get_testdata_file("staticarrayfield.stf")
+
+@pytest.fixture()
+def staticarrayfield_target():
+    """This returns the path to the multistruct1_target file."""
+    yield get_testdata_file("staticarrayfield.bin")

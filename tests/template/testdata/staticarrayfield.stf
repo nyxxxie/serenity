@@ -1,0 +1,3 @@
+struct FILE {
+    char array[6];
+};
