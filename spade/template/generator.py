@@ -38,6 +38,40 @@ class TemplateGenerator(object):
         if self.root:
             self.root.refresh(target_file)
 
+    def process_array(self, array_decl, parent_ast=None, parent=None, index=0):
+        """Process array."""
+
+        logging.debug("Processing array [type: \"{}\", name: \"{}\", "
+                      "size: {}]".format(array_decl.typename, array_decl.name,
+                                         array_decl.size))
+
+        # Create the TVar we need
+        # simply rip the properties we need from the resultant TVar.  This is a
+        # little hacky, but legal since TArray is subclassed from TVar
+        tvar = self.process_field(array_decl, parent_ast, parent, index)
+        symb = parent_ast.find_symbol(array_decl.typename)
+        if symb:
+            if isinstance(symb, ast.AstStructDeclaration):
+                logging.debug("Determined type {} is a struct ".format(
+                        field_decl.typename))
+                return self.process_struct(field_decl.name, symb, parent, index)
+            # elif: TODO: process typedefs
+            else:
+                raise GeneratorError("Unexpected type {} specified for struct "
+                        "element {}".format(type(symb), field_decl.name))
+
+        # If we didn't find any symbol, check the typesystem.
+        symb = typemanager.get_type(field_decl.typename)
+        if symb:
+            logging.debug("Determined type {} is a native type.".format(
+                    field_decl.typename))
+            return template.TVar(field_decl.name, field_decl.typename, self.root,
+                                 parent, index, symb)
+
+        # If we didn't find a definition for the type, we're SOL
+        raise GeneratorError("Undefined type {} specified for array {}".format(
+                field_decl.typename, field_decl.name))
+
     def process_field(self, field_decl, parent_ast=None, parent=None, index=0):
         """Process var."""
 
@@ -65,7 +99,7 @@ class TemplateGenerator(object):
                                  parent, index, symb)
 
         # If we didn't find a definition for the type, we're SOL
-        raise GeneratorError("Undefined type {} specified for struct element "
+        raise GeneratorError("Undefined type {} specified for field "
                 "{}".format(field_decl.typename, field_decl.name))
 
     def process_struct(self, field_name, struct_decl, parent=None,
@@ -84,7 +118,7 @@ class TemplateGenerator(object):
             if isinstance(field, ast.AstStructValueField):
                 struct.add_field(self.process_field(field, struct_decl, struct, i))
             elif isinstance(field, ast.AstStructArrayField):
-                raise NotImplemented("Arrays are not implemented.")
+                struct.add_field(self.process_array(field, struct_decl, struct, i))
             else:
                 raise GeneratorError("Bad field type \"{}\"".format(type(field)))
 

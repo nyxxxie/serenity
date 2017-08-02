@@ -35,6 +35,7 @@ Array Fields
 blah
 """
 
+import copy
 import logging
 
 TEMPLATE_ENTRY = "FILE"
@@ -66,13 +67,13 @@ class TVar(TNode):
     def __init__(self, name, type_name, root, parent, index, type_cls):
         super().__init__(name, type_name, root, parent, index)
         self.type_cls = type_cls
+        self.size = self.type_cls.size
         self.data = None
 
     def _refresh(self, target_file, offset):
         logging.debug("Reading {} bytes of type data at offset {}".format(offset,
-                self.type_cls.size))
+                self.size))
         self.offset = offset
-        self.size = self.type_cls.size
         target_file.seek(offset)
         # TODO: check if offset goes past file bounds
         # TODO: check if read goes past file bounds
@@ -84,18 +85,31 @@ class TVar(TNode):
         # easy changing of the target file.
 
 
-class TArray(TNode):
+class TArray(TVar):
     """."""
 
-    def __init__(self, name, type_name, length, root, parent, index):
+    def __init__(self, template_var, length):
         super().__init__(name, type_name, root, parent, index)
-        self.length = length
+        self.items = []
+
+        for i in range(length):
+            items.append(copy.deepcopy(template_var))
+
+    def __len__(self):
+        return self.length
+
+    # TODO: figure out how to implement index operator
+
+    @property
+    def length(self):
+        len(self.items)
 
     def get_index(self, index):
         pass
 
     def _refresh(self, target_file, offset):
-        pass
+        for i in range(self.length):
+            items._refresh(target_file, offset + (i * self.size))
 
 
 class TStruct(TNode):

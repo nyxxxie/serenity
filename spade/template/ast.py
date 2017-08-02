@@ -141,6 +141,6 @@ class AstStructArrayField(AstStructValueField):
     should determine the size at runtime.
     """
 
-    def __init__(self, typename, name, size):
+    def __init__(self, typename, name, length):
         super().__init__(typename, name)
-        self.size = size
+        self.length = length
