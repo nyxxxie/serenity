@@ -23,17 +23,17 @@ def test_body_structs(multistruct1, loc, field_amt, struct_amt, const_amt):
     assert len(symb.const_decls) == const_amt
 
 @pytest.mark.parametrize("loc,field_type,field_name,expected_cls", [
-    ("data_t", "int", "hungry", ast.AstStructValueField),
+    ("data_t", "char", "q", ast.AstStructValueField),
     ("header_t", "char", "blah0", ast.AstStructValueField),
     ("header_t", "char", "blah1", ast.AstStructValueField),
     ("header_t", "char", "blah2", ast.AstStructValueField),
     ("header_t", "char", "blah3", ast.AstStructValueField),
-    ("header_t", "int", "another_thing", ast.AstStructValueField),
-    ("header_t", "uint32", "so_many_things", ast.AstStructValueField),
+    ("header_t", "byte", "mmmm", ast.AstStructValueField),
+    ("header_t", "byte", "asdf", ast.AstStructValueField),
     ("header_t", "data_t", "data", ast.AstStructValueField),
     ("FILE", "header_t", "header", ast.AstStructValueField),
-    ("FILE", "int", "GUN", ast.AstStructValueField),
-    ("FILE", "int", "ramen_4_me", ast.AstStructValueField),
+    ("FILE", "int", "ah", ast.AstStructValueField),
+    ("FILE", "byte", "ramen_4_me", ast.AstStructValueField),
 ])
 def test_struct_data_t(multistruct1, loc, field_type, field_name, expected_cls):
     root = parser.TemplateParser.parse_file(multistruct1)
