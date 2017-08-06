@@ -21,7 +21,7 @@ class ParsingError(Exception):
 class TemplateParser(object):
     """Parses template files."""
 
-    def __init__(self):
+    def __init__(self, debug=False):
         # yacc requires these be listed here in order for it to work
         self.tokens = lexer.tokens
 
@@ -30,8 +30,8 @@ class TemplateParser(object):
             module=self,
             start='root',
             write_tables=False,
-            debug=True,
-            debuglog=logging.getLogger())
+            debug=debug,
+            debuglog=logging.getLogger() if debug else None)
 
     def p_root(self, p):
         """ root : declaration_list
@@ -54,7 +54,7 @@ class TemplateParser(object):
         p[0] = p[1]
 
     def p_declaration_const(self, p):
-        """ declaration_const : CONST NAME NAME EQUALS static_value
+        """ declaration_const : CONST NAME NAME EQUALS static_value SEMICOLON
         """
         p[0] = ast.AstConstDeclaration(p[2], p[3], p[5])
 
@@ -94,7 +94,7 @@ class TemplateParser(object):
             p[0].extend(p[2])  # Add the next set of contents to the list
 
     def p_struct_field_1(self, p):
-        """ struct_field : NAME NAME SEMICOLON """
+        """ struct_field : NAME NAME SEMICOLON"""
         p[0] = ast.AstStructValueField(p[1], p[2])
 
     def p_struct_field_2(self, p):
