@@ -71,8 +71,7 @@ class TVar(TNode):
         self.data = None
 
     def _refresh(self, target_file, offset):
-        logging.debug("Reading {} bytes of type data at offset {}".format(offset,
-                self.size))
+        logging.debug("Reading {} bytes at offset {}".format(offset, self.size))
         self.offset = offset
         target_file.seek(offset)
         # TODO: check if offset goes past file bounds
